@@ -1,9 +1,9 @@
 # Validation
 
-The flat project pins fork Horizon
+The flat project pins fork Sunrise
 `c417323915f5051092ff1c4649a0e96ef3022394` and its matching Mixins revision
 `e59da9094f0c2fdda6c627fe9eff22dec6a906f0`. This pin includes the host-area
-trait regroup, the `horizon-mod-package` rename, and the attachment and registry
+trait regroup, the `sunrise-mod-package` rename, and the attachment and registry
 key runtime split, plus API 2c's access declarations and generated host
 forwarders, plus API 2d's per-kind registrar and capability-provider traits.
 It also includes API 3a's owned nonempty `ItemStack` conversion boundary,
@@ -21,7 +21,7 @@ It retains typed block-entity declarations, scoped-Part subscriptions and flat
 layout, handles the Part registration
 `Result`, and its `register` hook takes the registration context. The launcher owns the generated main and its mod and
 inventory markers; the staging check lays the canonical flat package out at
-`horizon-native-mods/<id>/`, where the engine validates id, version and side
+`sunrise-native-mods/<id>/`, where the engine validates id, version and side
 and refuses startup on mismatch, with no record fallback. There is no
 handwritten entry, packaging filter or compatibility fallback.
 
@@ -39,7 +39,7 @@ pinned game's canonical package writer. `tools/test_package.py` checks the flat
 archive's contents, deterministic output and staging; development provenance,
 Cargo.lock and legacy manifests are not shipped.
 
-`tools/horizon.py check` first checks API injection placement against the exact
+`tools/sunrise.py check` first checks API injection placement against the exact
 pin's published point catalog and shared constructor resolver, then freshness
 against its internals catalog and shared injection router. It compiles the trait
 crate, but **not** generated injection bindings or a linked game executable.
@@ -48,13 +48,13 @@ hash, then accepts that real point with its current hash. Acceptance does not
 prove the listener exists or has the emitted signature; that needs native linkage. A successful paired item 11 reports pin, lock,
 stage and check separately; linking is an additional, explicitly named proof.
 
-Mods don't ship a toolchain file; Horizon's pinned toolchain builds them. The
+Mods don't ship a toolchain file; Sunrise's pinned toolchain builds them. The
 helper and CI explicitly select the pinned launcher's Rust 1.99.1.
 
 ## Played at the current pin
 
 Built with the launcher's developer SDK from a checkout of the pinned commit
-(see the README), started with `horizon-ctl launch --offscreen` under a virtual
+(see the README), started with `sunrise-ctl launch --offscreen` under a virtual
 display on software Vulkan, in a new creative world. A cobblestone chest to the
 west of the machine, a pipe to its east and an empty chest beyond:
 
@@ -69,12 +69,12 @@ west of the machine, a pipe to its east and an empty chest beyond:
 
 `sdk-0cad862ddcd8c80f184070eaab40c0d64b9a846d` was the first SDK release published
 while this pin was ported. With the manifest and `compatibility.json` pin moved to
-that build and no other change, `cargo horizon-mod check` fetched the signed SDK and passed (the host and
-wasm32 checks, then 566 API items used), `cargo horizon-mod build` packed `machine_sample.hmod` with
-its `uses.json`, and `horizon-launcher native-build` on a developer base of that commit,
-with no `HORIZON_LAUNCHER_DEVELOPER_SDK`, downloaded the mod tools (96 MB) and built in 13 s. In game the
+that build and no other change, `cargo sunrise-mod check` fetched the signed SDK and passed (the host and
+wasm32 checks, then 566 API items used), `cargo sunrise-mod build` packed `machine_sample.hmod` with
+its `uses.json`, and `sunrise-launcher native-build` on a developer base of that commit,
+with no `SUNRISE_LAUNCHER_DEVELOPER_SDK`, downloaded the mod tools (96 MB) and built in 13 s. In game the
 same chest-machine-pipe-chest line turned 16 cobblestone into 16 stone. This sample's own pin stays at
-`c417323915`, which has no SDK release. `cargo horizon-mod hooks` and `fits` were tried only as far as
+`c417323915`, which has no SDK release. `cargo sunrise-mod hooks` and `fits` were tried only as far as
 `hooks energy` (no match) and `fits` (no Nightly SDK to compare with).
 
 Not run at this pin: fluids, energy, the tour commands, keybindings, attachments,
@@ -267,12 +267,12 @@ manually verified.
 
 ## In-game proof scope
 
-The README pictures were captured at Horizon
+The README pictures were captured at Sunrise
 `5d27928c5ce0ca8c041b0856ef56bfe5430bb6fc`, with sample code
 including the hand guard from #40 and screen-label fix from #42 (the latter's
 source head was `dc5d2616f17a7101cd445be3504dfa474060253e`). The exact-pin fork
 launcher built and linked the sample in Developer mode: Cargo's `fast` profile
-with the `horizon-client` package's optimization level set to 0. It ran offscreen
+with the `sunrise-client` package's optimization level set to 0. It ran offscreen
 on Xvfb with software Vulkan/llvmpipe and a local integrated server, not a LAN
 guest or dedicated server.
 

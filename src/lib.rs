@@ -11,7 +11,7 @@ struct Sample {
     machine: std::sync::OnceLock<BlockKey>,
 }
 
-#[mod_api::horizon_mod]
+#[mod_api::sunrise_mod]
 impl Hooks for Sample {
     fn server_tick_rate_changed(
         &self,

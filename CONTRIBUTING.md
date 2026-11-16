@@ -4,7 +4,7 @@ Contributions are welcome. Please open a pull request and describe the change
 and its tests. Submit original code and assets only. Do not copy Mojang, Create,
 or other mods' source code or assets.
 
-This sample tracks the exact Horizon and Mixins revisions in
+This sample tracks the exact Sunrise and Mixins revisions in
 `compatibility.json`. Keep changes compatible with those pins, or explain and
 validate any pin update. Read the build and content setup in [README.md](README.md)
 before starting.
@@ -18,8 +18,8 @@ cargo test --workspace --locked --offline
 ```
 
 For bundle or compatibility changes, also run `python3 tools/test_stage.py` and
-`python3 tools/horizon.py check` and `test` against the pinned Horizon source.
-Pass `--horizon` as described in the README. These checks do not link the game:
+`python3 tools/sunrise.py check` and `test` against the pinned Sunrise source.
+Pass `--sunrise` as described in the README. These checks do not link the game:
 use the launcher's native build and test the behavior in game as well. Trait
 hooks and parts are the normal route; raw injections are a rare escape hatch.
 Do not commit exported sources, game assets, or build output.

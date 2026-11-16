@@ -5,43 +5,43 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
-import horizon
+import sunrise
 
 
 def snapshot(root):
-    return {str(p.relative_to(root)): (horizon.digest(p.read_bytes()), p.stat().st_mtime_ns)
+    return {str(p.relative_to(root)): (sunrise.digest(p.read_bytes()), p.stat().st_mtime_ns)
             for p in root.rglob('*') if p.is_file()}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--horizon', type=Path, default=horizon.ROOT.parent/'horizon')
+    parser.add_argument('--sunrise', type=Path, default=sunrise.ROOT.parent/'sunrise')
     args = parser.parse_args()
-    checkout = args.horizon.resolve()
+    checkout = args.sunrise.resolve()
     status = subprocess.check_output(['git', '-C', str(checkout), 'status', '--porcelain'])
-    before = {p: (checkout/p).read_bytes() for p in horizon.COMPAT['source_sha256']}
-    (horizon.ROOT/'target').mkdir(exist_ok=True)
-    with horizon.lock(horizon.ROOT/'target/stage.lock'):
-        with tempfile.TemporaryDirectory(prefix='native-stage-test-', dir=horizon.ROOT/'target') as scratch:
+    before = {p: (checkout/p).read_bytes() for p in sunrise.COMPAT['source_sha256']}
+    (sunrise.ROOT/'target').mkdir(exist_ok=True)
+    with sunrise.lock(sunrise.ROOT/'target/stage.lock'):
+        with tempfile.TemporaryDirectory(prefix='native-stage-test-', dir=sunrise.ROOT/'target') as scratch:
             root = Path(scratch)
-            output, changed = horizon.trait_stage(checkout, root)
+            output, changed = sunrise.trait_stage(checkout, root)
             assert changed
             first = snapshot(output)
-            second, changed = horizon.trait_stage(checkout, root)
+            second, changed = sunrise.trait_stage(checkout, root)
             assert second == output and not changed and first == snapshot(output)
-            staged = root/'horizon-native-mods/machine_sample'
-            manifest = horizon.tomllib.loads((staged/'horizon-mod.toml').read_text())
-            assert manifest['native']['horizon'] == horizon.PIN
+            staged = root/'sunrise-native-mods/machine_sample'
+            manifest = sunrise.tomllib.loads((staged/'sunrise-mod.toml').read_text())
+            assert manifest['native']['sunrise'] == sunrise.PIN
             assert 'injection' not in manifest['native']
-            assert (staged/'src/machine.rs').read_bytes() == (horizon.ROOT/'src/machine.rs').read_bytes()
+            assert (staged/'src/machine.rs').read_bytes() == (sunrise.ROOT/'src/machine.rs').read_bytes()
             assert (staged/'Cargo.toml').is_file()
             assert not any((staged/path).exists() for path in
-                           ('native', 'rust', 'horizon-native.json', 'horizon-mixin.toml'))
+                           ('native', 'rust', 'sunrise-native.json', 'horizon-mixin.toml'))
             assert not (staged/'tools').exists(), 'development helper leaked into the package'
             mismatched = root/'mismatched.lock'
             mismatched.write_text('[[package]]\nname = "libc"\nversion = "999.0.0"\n')
             try:
-                horizon.check_lock(output/'Cargo.lock', mismatched)
+                sunrise.check_lock(output/'Cargo.lock', mismatched)
             except ValueError as error:
                 assert 'libc 999.0.0' in str(error)
             else:

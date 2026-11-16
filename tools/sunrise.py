@@ -16,12 +16,12 @@ import time
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = tomllib.loads((ROOT / "horizon-mod.toml").read_text())
+MANIFEST = tomllib.loads((ROOT / "sunrise-mod.toml").read_text())
 COMPAT = json.loads((ROOT / "compatibility.json").read_text())
-PIN = MANIFEST["native"]["horizon"]
-# Where `cargo horizon-mod` fetches the pinned build's SDK; the crate names the API only there.
-SDK_API = ".horizon/sdk/api/crates/horizon-mod-api"
-# Matches launcher/src/rust_toolchain.rs at the pinned Horizon revision.
+PIN = MANIFEST["native"]["sunrise"]
+# Where `cargo sunrise-mod` fetches the pinned build's SDK; the crate names the API only there.
+SDK_API = ".sunrise/sdk/api/crates/sunrise-mod-api"
+# Matches launcher/src/rust_toolchain.rs at the pinned Sunrise revision.
 TOOLCHAIN = "1.99.1"
 
 
@@ -29,16 +29,16 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def stage(horizon, stages):
-    if not (horizon / ".git").exists():
-        raise ValueError("--horizon must be a Git checkout (including a worktree)")
-    subprocess.run(["git", "-C", str(horizon), "cat-file", "-e", PIN + "^{commit}"], check=True, capture_output=True)
+def stage(sunrise, stages):
+    if not (sunrise / ".git").exists():
+        raise ValueError("--sunrise must be a Git checkout (including a worktree)")
+    subprocess.run(["git", "-C", str(sunrise), "cat-file", "-e", PIN + "^{commit}"], check=True, capture_output=True)
     inputs = {"revision": PIN.encode(), "export-schema": b"2"}
     signature = digest(b"".join(k.encode() + b"\0" + value for k, value in sorted(inputs.items())))
     stages.mkdir(parents=True, exist_ok=True)
     out = stages / signature[:20]
     if out.exists():
-        marker = json.loads((out / ".horizon-mod-template.json").read_text())
+        marker = json.loads((out / ".sunrise-mod-template.json").read_text())
         if marker["signature"] != signature:
             raise ValueError(f"stage marker mismatch: {out}")
         for path, expected in marker["files"].items():
@@ -47,7 +47,7 @@ def stage(horizon, stages):
         return out, False
     temporary = Path(tempfile.mkdtemp(prefix=".mod-template-stage-", dir=stages))
     try:
-        process = subprocess.Popen(["git", "-C", str(horizon), "archive", "--format=tar", PIN], stdout=subprocess.PIPE)
+        process = subprocess.Popen(["git", "-C", str(sunrise), "archive", "--format=tar", PIN], stdout=subprocess.PIPE)
         try:
             subprocess.run(["tar", "-x", "-C", str(temporary)], stdin=process.stdout, check=True)
         finally:
@@ -69,7 +69,7 @@ def stage(horizon, stages):
         # The source tree itself is deterministic. Cargo outputs live elsewhere.
         files = {str(p.relative_to(temporary)): digest(p.read_bytes())
                  for p in sorted(temporary.rglob("*")) if p.is_file()}
-        (temporary / ".horizon-mod-template.json").write_text(json.dumps(
+        (temporary / ".sunrise-mod-template.json").write_text(json.dumps(
             {"signature": signature, "horizon_revision": PIN, "files": files}, sort_keys=True, indent=2) + "\n")
         os.rename(temporary, out)
     except BaseException:
@@ -83,20 +83,20 @@ def stage_mods(source, stages):
     command = ["nice", "-n", "19", "cargo", "run", "-j", "4", "--locked", "--offline",
                "--manifest-path", str(source / "Cargo.toml"),
                "--target-dir", str(ROOT / "target/package-tool"),
-               "-p", "cargo-horizon-mod", "--", "build"]
+               "-p", "cargo-sunrise-mod", "--", "build"]
     subprocess.run(command, cwd=ROOT, check=True, stdout=subprocess.PIPE, text=True,
                    env=dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN))
-    package = ROOT / "target/horizon-mod" / f"{MANIFEST['id']}.hmod"
-    mods = stages / "horizon-native-mods"
+    package = ROOT / "target/sunrise-mod" / f"{MANIFEST['id']}.hmod"
+    mods = stages / "sunrise-native-mods"
     shutil.rmtree(mods, ignore_errors=True)
     with zipfile.ZipFile(package) as archive:
         archive.extractall(mods / MANIFEST["id"])
     return mods
 
 
-def check_lock(horizon_lock, sample_lock):
+def check_lock(sunrise_lock, sample_lock):
     """Refuse a shared dependency version absent from the pinned game lock."""
-    with horizon_lock.open("rb") as file:
+    with sunrise_lock.open("rb") as file:
         packages = tomllib.load(file)["package"]
     versions = {}
     for package in packages:
@@ -106,17 +106,17 @@ def check_lock(horizon_lock, sample_lock):
     for package in sample:
         name, version = package["name"], package["version"]
         if name in versions and version not in versions[name]:
-            raise ValueError(f"{name} {version} differs from pinned Horizon lock: {sorted(versions[name])}")
+            raise ValueError(f"{name} {version} differs from pinned Sunrise lock: {sorted(versions[name])}")
 
 
-def trait_stage(horizon, stages):
+def trait_stage(sunrise, stages):
     """Export the pinned game and stage its flat mod without changing game sources."""
     crate = tomllib.loads((ROOT / "Cargo.toml").read_text())
     if (COMPAT["horizon_revision"] != PIN
-            or crate["dependencies"]["horizon-mod-api"] != {"path": SDK_API}
+            or crate["dependencies"]["sunrise-mod-api"] != {"path": SDK_API}
             or MANIFEST["native"]["mixins"] != COMPAT["horizon_mixins_revision"]):
         raise ValueError("The manifest and development provenance pins must match, and the crate must name the API by its SDK path")
-    output, changed = stage(horizon, stages / "original")
+    output, changed = stage(sunrise, stages / "original")
     check_lock(output / "Cargo.lock", ROOT / "Cargo.lock")
     stage_mods(output, stages)
     return output, changed
@@ -133,25 +133,25 @@ def lock(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["stage", "check", "build", "test"])
-    parser.add_argument("--horizon", type=Path, default=ROOT.parent / "horizon")
-    parser.add_argument("--target-dir", type=Path, default=ROOT / "target/horizon-cargo")
+    parser.add_argument("--sunrise", type=Path, default=ROOT.parent / "sunrise")
+    parser.add_argument("--target-dir", type=Path, default=ROOT / "target/sunrise-cargo")
     args = parser.parse_args()
-    horizon = args.horizon.resolve()
+    sunrise = args.sunrise.resolve()
     target = args.target_dir.resolve()
-    if target.is_relative_to(horizon):
-        parser.error("Cargo target must be outside the original Horizon checkout")
+    if target.is_relative_to(sunrise):
+        parser.error("Cargo target must be outside the original Sunrise checkout")
     started = time.monotonic()
     with lock(ROOT / "target/stage.lock"):
-        output, changed = trait_stage(horizon, ROOT / "target/trait")
+        output, changed = trait_stage(sunrise, ROOT / "target/trait")
         if target.is_relative_to(output) or output.is_relative_to(target):
             parser.error("Cargo target and generated source stage must be separate")
         report = {"stage": str(output), "stage_changed": changed,
                   "horizon_revision": PIN, "staging_seconds": time.monotonic()-started}
         if args.action != "stage":
             if args.action == "build":
-                raise ValueError("trait mods must be linked with horizon-launcher native-build; see README.md")
+                raise ValueError("trait mods must be linked with sunrise-launcher native-build; see README.md")
             command = ["nice", "-n", "19", "cargo", args.action, "-j", "4",
-                       "--locked", "--offline", "-p", "horizon-example-mod",
+                       "--locked", "--offline", "-p", "sunrise-example-mod",
                        "--target-dir", str(target)]
             if args.action == "test":
                 command.extend(["--", "--nocapture", "--test-threads=4"])
@@ -161,7 +161,7 @@ def main():
                                         env=dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN))
             report.update(cargo_seconds=time.monotonic()-run_start, cargo_command=command,
                           cargo_exit=result.returncode)
-            log = ROOT / "target" / f"horizon-{args.action}.log"
+            log = ROOT / "target" / f"sunrise-{args.action}.log"
             log.write_text(result.stdout + result.stderr)
             report["cargo_log"] = str(log)
             if result.returncode:

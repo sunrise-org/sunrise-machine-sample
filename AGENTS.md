@@ -1,16 +1,16 @@
-# Working on a native Horizon mod
+# Working on a native Sunrise mod
 
 Read README.md and compatibility.json before editing. Keep this repository
-separate from Horizon and horizon-mixins. Only export committed pinned Horizon
+separate from Sunrise and horizon-mixins. Only export committed pinned Sunrise
 sources into ignored target trees; never modify the original checkout or player
 resources. Do not commit binaries, exported sources or Minecraft assets.
 
 The runtime crate lives at the project root in src/. The sole mod manifest is
-horizon-mod.toml; the launcher generates its own injection-tool manifest. Keep
+sunrise-mod.toml; the launcher generates its own injection-tool manifest. Keep
 helper functions small and gameplay logic testable there. All AST changes go
 through horizon-mixins plan/apply; do not add string-based Rust source rewriting.
 
 Validate with cargo fmt, clippy with warnings denied, cargo test and
 the standalone tests. For bundle/compatibility changes also run
-python3 tools/test_stage.py and python3 tools/horizon.py check/test against the
+python3 tools/test_stage.py and python3 tools/sunrise.py check/test against the
 pinned source export. Keep validation claims and supported revisions honest.

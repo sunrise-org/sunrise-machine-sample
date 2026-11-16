@@ -1,13 +1,13 @@
 [package]
-name = "horizon-example-mod"
+name = "sunrise-example-mod"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.95"
 license = "MIT"
-description = "A minimal native Horizon mod"
+description = "A minimal native Sunrise mod"
 
 [dependencies]
-horizon-mod-api = { path = ".horizon/sdk/api/crates/horizon-mod-api" }
+sunrise-mod-api = { path = ".sunrise/sdk/api/crates/sunrise-mod-api" }
 
 [dev-dependencies]
-horizon-mod-api = { path = ".horizon/sdk/api/crates/horizon-mod-api", features = ["testing"] }
+sunrise-mod-api = { path = ".sunrise/sdk/api/crates/sunrise-mod-api", features = ["testing"] }

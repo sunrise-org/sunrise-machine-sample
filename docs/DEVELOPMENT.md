@@ -5,18 +5,18 @@ and the parts of the sample that are deliberately small.
 
 ## Exact build inputs
 
-[horizon-mod.toml](../horizon-mod.toml) is the sole mod manifest. Its `[native]`
-section pins the game and exact Horizon and horizon-mixins revisions. The
+[sunrise-mod.toml](../sunrise-mod.toml) is the sole mod manifest. Its `[native]`
+section pins the game and exact Sunrise and horizon-mixins revisions. The
 API dependency in [Cargo.toml](../Cargo.toml) names the API only by the SDK path
-`.horizon/sdk/api/crates/horizon-mod-api`; the SDK there must be that same Horizon
+`.sunrise/sdk/api/crates/sunrise-mod-api`; the SDK there must be that same Sunrise
 commit's. [compatibility.json](../compatibility.json) records the source revision
 and hashes used by the development exporter; it is not a runtime manifest.
 
 Use a fork launcher that understands this API and package layout. Native builds
-must match the installed base build's Horizon revision; an arbitrary upstream
+must match the installed base build's Sunrise revision; an arbitrary upstream
 release or a different Nightly is not a substitute. A stale launcher can also
 stage obsolete crate names even when the mod itself compiles. The current CLI's
-Developer mode currently uses Cargo's `fast` profile with the `horizon-client`
+Developer mode currently uses Cargo's `fast` profile with the `sunrise-client`
 package's optimization level set to 0. Balanced and Optimized are separate
 build modes. The README uses Optimized to select the prebuilt route when the exact artifact exists.
 Developer is an explicit source-build fallback, not prebuilt proof.
@@ -27,27 +27,27 @@ the pinned dependencies before using `--offline`.
 
 ## Local checks
 
-With a Git checkout containing the committed Horizon pin:
+With a Git checkout containing the committed Sunrise pin:
 
-The API source must exist at that path first: `cargo horizon-mod check` fetches the signed
+The API source must exist at that path first: `cargo sunrise-mod check` fetches the signed
 SDK of a published build, and for an unpublished one `python3 tools/sdk_api_source.py build
-.horizon/sdk/api` in the Horizon checkout writes it.
+.sunrise/sdk/api` in the Sunrise checkout writes it.
 
 ```sh
 cargo +1.99.1 fmt --check
 cargo +1.99.1 clippy --workspace --all-targets --locked --offline -- -D warnings
 cargo +1.99.1 test --workspace --locked --offline
-python3 tools/test_stage.py --horizon /path/to/horizon
-python3 tools/horizon.py check --horizon /path/to/horizon
+python3 tools/test_stage.py --sunrise /path/to/sunrise
+python3 tools/sunrise.py check --sunrise /path/to/sunrise
 ```
 
 The stage test exports only committed pinned sources into ignored `target/`
 trees. It verifies source hashes and shared dependency versions, stages the
 canonical flat package, and leaves the original checkout unchanged. Repeated
 exports must preserve source bytes and mtimes. `check` then compiles the sample's crate in
-that export. Staging runs the pinned game's `cargo horizon-mod build`, which fetches the pinned build's signed SDK:
+that export. Staging runs the pinned game's `cargo sunrise-mod build`, which fetches the pinned build's signed SDK:
 with no `sdk-<build id>` release for the pin, `stage`, `check`, `test`, `package.py` and `test_stage.py`
-stop there with "has no signed SDK" ([horizon#4313](https://github.com/arismoko/horizon/issues/4313)), so they were not run
+stop there with "has no signed SDK" ([sunrise#4313](https://github.com/arismoko/horizon/issues/4313)), so they were not run
 at this pin. Listener existence/signatures and gameplay need the launcher's native build.
 [VALIDATION](../VALIDATION.md) gives the proof scope and triggers.
 
@@ -60,7 +60,7 @@ when staging the mod. The development lockfile is not packaged.
 One flat project becomes one `.hmod`:
 
 ```text
-horizon-mod.toml
+sunrise-mod.toml
 Cargo.toml
 src/lib.rs
 src/machine.rs
@@ -69,8 +69,8 @@ assets/machine_sample/
 data/machine_sample/
 ```
 
-The mod's id and version come from `horizon-mod.toml`, not Cargo's package name
-and version. `#[mod_api::horizon_mod]` exports its Hooks entry. The launcher owns
+The mod's id and version come from `sunrise-mod.toml`, not Cargo's package name
+and version. `#[mod_api::sunrise_mod]` exports its Hooks entry. The launcher owns
 the generated game entry and tool manifest; this project has no raw injections
 or handwritten factories. The tick-rate example uses `server_tick_rate_changed`, the typed hook now provided
 by the engine. There are no injection declarations or points dependencies. A
@@ -81,11 +81,11 @@ access and are deliberately outside this prebuilt-only sample.
 Package using the pinned game's shared writer:
 
 ```sh
-python3 tools/package.py --horizon /path/to/horizon
-python3 tools/test_package.py --horizon /path/to/horizon
+python3 tools/package.py --sunrise /path/to/sunrise
+python3 tools/test_package.py --sunrise /path/to/sunrise
 ```
 
-The output is `target/horizon-mod/machine_sample.hmod`. Development provenance,
+The output is `target/sunrise-mod/machine_sample.hmod`. Development provenance,
 Cargo.lock and build output are not shipped. See [CONTENT](../CONTENT.md) for the
 content setup. No standalone vanilla assets are included; documentation images
 are ordinary in-game screenshots.
@@ -140,11 +140,11 @@ slot 0 accepts input and slot 1 allows output.
 Registration declares the `machine` block-entity type for the machine block,
 retaining save id `machine_sample:machine`, and attaches its scoped Part through
 the returned key. Empty initial NBT uses the type's default. Each scoped Part
-uses `#[mod_api::horizon_part]` to declare subscriptions. The pipe is a plain
+uses `#[mod_api::sunrise_part]` to declare subscriptions. The pipe is a plain
 block. Inventory transfers reuse `ITEMS`, the tank reuses `FLUIDS`, and the
 energy buffer reuses `ENERGY`; there are no parallel stores or transfer engines.
 
 To test a hook or helper end to end, change the trait mod, build the linked game
 and exercise it on the intended game thread. This is the recommended sample
 route for native mod API work described in
-[Horizon #4953](https://github.com/horizon-rust/horizon/issues/4953).
+[Sunrise #4953](https://github.com/horizon-rust/horizon/issues/4953).
