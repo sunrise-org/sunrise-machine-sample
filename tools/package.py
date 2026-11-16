@@ -4,16 +4,16 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-import horizon
+import sunrise
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--horizon', type=Path, default=horizon.ROOT.parent/'horizon')
+    parser.add_argument('--sunrise', type=Path, default=sunrise.ROOT.parent/'sunrise')
     args = parser.parse_args()
-    with horizon.lock(horizon.ROOT/'target/stage.lock'):
-        horizon.trait_stage(args.horizon.resolve(), horizon.ROOT/'target/trait')
-        out = horizon.ROOT/'target/horizon-mod'/f"{horizon.MANIFEST['id']}.hmod"
+    with sunrise.lock(sunrise.ROOT/'target/stage.lock'):
+        sunrise.trait_stage(args.sunrise.resolve(), sunrise.ROOT/'target/trait')
+        out = sunrise.ROOT/'target/sunrise-mod'/f"{sunrise.MANIFEST['id']}.hmod"
         print(json.dumps(dict(file=str(out), size=out.stat().st_size,
                               sha256=hashlib.sha256(out.read_bytes()).hexdigest()), indent=2))
 

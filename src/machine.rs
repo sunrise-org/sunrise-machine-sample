@@ -8,10 +8,10 @@ pub struct Machine {
     pub(crate) recipes: std::sync::Arc<crate::processing::ProcessingRecipes>,
 }
 
-#[mod_api::horizon_part]
+#[mod_api::sunrise_part]
 impl BlockPart for Machine {}
 
-#[mod_api::horizon_part]
+#[mod_api::sunrise_part]
 impl BlockEntityPart for Machine {
     fn block_entity_ticks(&self, _: &dyn Host, event: &mut BlockEntityTicksEvent<'_>) {
         event.ticks = true;

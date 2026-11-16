@@ -14,14 +14,14 @@ The blocks and textures do not provide processing or pipe transport by themselve
 
 ## Build and install
 
-Install the content tool from the matching Horizon revision, as described in
-Horizon `docs/mods.md`. From this directory, run:
+Install the content tool from the matching Sunrise revision, as described in
+Sunrise `docs/mods.md`. From this directory, run:
 
 ```sh
-cargo horizon-mod build
-cargo horizon-mod check target/horizon-mod/machine_sample.hmod
+cargo sunrise-mod build
+cargo sunrise-mod check target/sunrise-mod/machine_sample.hmod
 ```
 
-Install `target/horizon-mod/machine_sample.hmod` through the launcher's Mods page and build its native trait mod. The machine registers a `BlockEntityPart` and uses `ITEMS` and screen hooks; it has no raw injections. Raw mixins are a rare escape hatch, not the recommended route.
+Install `target/sunrise-mod/machine_sample.hmod` through the launcher's Mods page and build its native trait mod. The machine registers a `BlockEntityPart` and uses `ITEMS` and screen hooks; it has no raw injections. Raw mixins are a rare escape hatch, not the recommended route.
 This single package contains both content and native behavior. Use the same mod on both client and server. Removing registered blocks from an existing world can
 lose world data; test in a fresh world.
