@@ -120,7 +120,10 @@ impl BlockEntityPart for Machine {
         Some(Screen {
             width: 176.0,
             height: 166.0,
-            slots: vec![Some([44.0, 35.0]), Some([116.0, 35.0])],
+            slots: vec![
+                Some(ScreenSlot { position: [44.0, 35.0], no_item_icon: None }),
+                Some(ScreenSlot { position: [116.0, 35.0], no_item_icon: None }),
+            ],
             inventory_x: 8.0,
             inventory_y: 84.0,
             own_labels: false,
