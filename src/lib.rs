@@ -108,6 +108,7 @@ impl Hooks for Sample {
                 },
             )
             .expect("native block entity type");
+        registrar.menu_part(MACHINE_MENU, machine::MachineScreen);
     }
 }
 
@@ -117,11 +118,13 @@ fn container() -> ModContainer {
         faces: std::array::from_fn(|_| vec![0, 1]),
         inputs: vec![0],
         outputs: vec![1],
-        menu: Some("minecraft:hopper".into()),
+        menu: Some(MACHINE_MENU.into()),
     }
 }
 
 pub const MACHINE: &str = "machine_sample:machine";
+/// The machine's menu type: vanilla's hopper menu, five slots.
+pub const MACHINE_MENU: &str = "minecraft:hopper";
 /// The recipe type the machine queries with `recipes_of_type`.
 pub const PROCESSING_RECIPE_TYPE: &str = "machine_sample:processing";
 /// The `type` of the recipe files, a serializer id independent of the recipe type.

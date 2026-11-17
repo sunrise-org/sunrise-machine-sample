@@ -116,58 +116,6 @@ impl BlockEntityPart for Machine {
         }
     }
 
-    fn screen(&self, _: &dyn Host, _: &mut ScreenEvent<'_>) -> Option<Screen> {
-        Some(Screen {
-            width: 176.0,
-            height: 166.0,
-            slots: vec![
-                Some(ScreenSlot { position: [44.0, 35.0], no_item_icon: None }),
-                Some(ScreenSlot { position: [116.0, 35.0], no_item_icon: None }),
-            ],
-            inventory_x: 8.0,
-            inventory_y: 84.0,
-            own_labels: false,
-            own_background: false,
-            ..Screen::default()
-        })
-    }
-
-    fn screen_draw(&self, _: &dyn ClientHost, event: &mut ScreenDrawEvent<'_>) {
-        crate::tour::reload::draw(event);
-        crate::tour::client::overlay(event);
-        let [x, y] = event.origin;
-        event
-            .draw
-            .fill([x + 66.0, y + 55.0, 44.0, 16.0], 0xff555555);
-        event
-            .draw
-            .text("Deposit", [x + 68.0, y + 59.0], 0xffffffff, false);
-        let duration = event.data.get(1).copied().unwrap_or(DURATION).max(1);
-        let progress = event
-            .data
-            .first()
-            .copied()
-            .unwrap_or_default()
-            .clamp(0, duration);
-        event.draw.fill([x + 72.0, y + 40.0, 32.0, 6.0], 0xff555555);
-        event.draw.fill(
-            [
-                x + 72.0,
-                y + 40.0,
-                32.0 * progress as f32 / duration as f32,
-                6.0,
-            ],
-            0xff55bb55,
-        );
-    }
-
-    fn screen_click(&self, _: &dyn ClientHost, event: &mut ScreenClickEvent<'_>) -> Option<i32> {
-        (!event.right
-            && (66.0..110.0).contains(&event.at[0])
-            && (55.0..71.0).contains(&event.at[1]))
-        .then_some(DEPOSIT)
-    }
-
     fn menu_button(&self, host: &mut dyn ServerHost, event: &mut MenuButtonEvent<'_>) {
         if event.context.id != DEPOSIT {
             return;
@@ -199,5 +147,77 @@ impl BlockEntityPart for Machine {
             *input = split.taken;
             *event.carried = split.remainder;
         }
+    }
+}
+
+/// The machine's screen. Its menu is vanilla's hopper menu, which other mods' blocks may open
+/// too, so it answers only for the machine.
+pub struct MachineScreen;
+
+#[mod_api::sunrise_part]
+impl MenuPart for MachineScreen {
+    fn screen(&self, _: &dyn Host, event: &mut ScreenEvent<'_>) -> Option<Screen> {
+        if event.block != Some(crate::MACHINE) {
+            return None;
+        }
+        Some(Screen {
+            width: 176.0,
+            height: 166.0,
+            slots: vec![
+                Some(ScreenSlot {
+                    position: [44.0, 35.0],
+                    no_item_icon: None,
+                }),
+                Some(ScreenSlot {
+                    position: [116.0, 35.0],
+                    no_item_icon: None,
+                }),
+            ],
+            inventory_x: 8.0,
+            inventory_y: 84.0,
+            own_labels: false,
+            own_background: false,
+            ..Screen::default()
+        })
+    }
+
+    fn screen_draw(&self, _: &dyn ClientHost, event: &mut ScreenDrawEvent<'_>) {
+        if event.block != Some(crate::MACHINE) {
+            return;
+        }
+        crate::tour::reload::draw(event);
+        crate::tour::client::overlay(event);
+        let [x, y] = event.origin;
+        event
+            .draw
+            .fill([x + 66.0, y + 55.0, 44.0, 16.0], 0xff555555);
+        event
+            .draw
+            .text("Deposit", [x + 68.0, y + 59.0], 0xffffffff, false);
+        let duration = event.data.get(1).copied().unwrap_or(DURATION).max(1);
+        let progress = event
+            .data
+            .first()
+            .copied()
+            .unwrap_or_default()
+            .clamp(0, duration);
+        event.draw.fill([x + 72.0, y + 40.0, 32.0, 6.0], 0xff555555);
+        event.draw.fill(
+            [
+                x + 72.0,
+                y + 40.0,
+                32.0 * progress as f32 / duration as f32,
+                6.0,
+            ],
+            0xff55bb55,
+        );
+    }
+
+    fn screen_click(&self, _: &dyn ClientHost, event: &mut ScreenClickEvent<'_>) -> Option<i32> {
+        (event.block == Some(crate::MACHINE)
+            && !event.right
+            && (66.0..110.0).contains(&event.at[0])
+            && (55.0..71.0).contains(&event.at[1]))
+        .then_some(DEPOSIT)
     }
 }
