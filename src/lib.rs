@@ -117,6 +117,7 @@ fn container() -> ModContainer {
         faces: std::array::from_fn(|_| vec![0, 1]),
         inputs: vec![0],
         outputs: vec![1],
+        insert_rules: Vec::new(),
         menu: Some("minecraft:hopper".into()),
     }
 }
