@@ -155,15 +155,19 @@ mod tests {
     #[test]
     fn stopped_and_next_start_cannot_reuse_world_definitions() {
         let sample = crate::Sample::default();
+        let recipes = sample.recipes.clone();
+        let mods = vec![ModEntry::new("machine_sample", Box::new(sample))].into();
         let source = data(&[2]);
         let input = ItemStack::new(key(1), 1).unwrap();
         let mut host = mod_api::testing::FakeHost::new();
-        sample.recipes.publish(&source);
-        sample.server_stopped(&mut host, &mut ServerStoppedEvent { dedicated: false });
-        assert!(result(&sample.recipes, &source, &input).is_none());
-        sample.recipes.publish(&source);
-        sample.server_about_to_start(&mut host, &mut ServerAboutToStartEvent { dedicated: true });
-        assert!(result(&sample.recipes, &source, &input).is_none());
+        mod_api::testing::with_mods(mods, || {
+            recipes.publish(&source);
+            dispatch_server_stopped(&mut host, false);
+            assert!(result(&recipes, &source, &input).is_none());
+            recipes.publish(&source);
+            dispatch_server_about_to_start(&mut host, true);
+            assert!(result(&recipes, &source, &input).is_none());
+        });
     }
 
     #[test]
