@@ -115,13 +115,31 @@ impl BlockEntityPart for Machine {
             }
         }
     }
+}
+
+/// The machine's screen. Its menu is vanilla's hopper menu, which other mods' blocks may open
+/// too, so it answers only for the machine.
+pub struct MachineScreen;
+
+#[mod_api::sunrise_part]
+impl MenuPart for MachineScreen {
+    /// The machine takes one button, Deposit; the hopper menu it shares answers for no other block.
+    fn menu_button_valid(&self, _: &dyn Host, event: &mut MenuButtonValidEvent<'_>) -> Flow {
+        if event.block == Some(crate::MACHINE) && event.id == DEPOSIT {
+            Flow::Cancel
+        } else {
+            Flow::Continue
+        }
+    }
 
     fn menu_button(&self, host: &mut dyn ServerHost, event: &mut MenuButtonEvent<'_>) {
-        if event.context.id != DEPOSIT {
+        if event.block != Some(crate::MACHINE) || event.context.id != DEPOSIT {
             return;
         }
-        let (Some(input), Some(stack)) = (event.entity.items.first_mut(), event.carried.as_ref())
-        else {
+        let Some(entity) = event.entity.as_mut() else {
+            return;
+        };
+        let (Some(input), Some(stack)) = (entity.items.first_mut(), event.carried.as_ref()) else {
             return;
         };
         let limit = host.max_stack_size(stack.item()).unwrap_or(0);
@@ -148,14 +166,7 @@ impl BlockEntityPart for Machine {
             *event.carried = split.remainder;
         }
     }
-}
 
-/// The machine's screen. Its menu is vanilla's hopper menu, which other mods' blocks may open
-/// too, so it answers only for the machine.
-pub struct MachineScreen;
-
-#[mod_api::sunrise_part]
-impl MenuPart for MachineScreen {
     fn screen(&self, _: &dyn Host, event: &mut ScreenEvent<'_>) -> Option<Screen> {
         if event.block != Some(crate::MACHINE) {
             return None;
