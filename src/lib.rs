@@ -73,18 +73,7 @@ impl Hooks for Sample {
 
     fn register_commands(&self, _: &mut dyn ServerHost, event: &mut RegisterCommandsEvent<'_>) {
         tour::services::register(event);
-        tour::fluids::register(event);
-    }
-
-    fn run_mod_command(
-        &self,
-        host: &mut dyn ServerHost,
-        event: &mut RunModCommandEvent<'_>,
-    ) -> Flow {
-        if matches!(tour::services::run(host, event), Flow::Cancel) {
-            return Flow::Cancel;
-        }
-        tour::fluids::run(host, event, self.machine.get().copied())
+        tour::fluids::register(event, self.machine.get().copied());
     }
 
     fn register(&self, registrar: &mut dyn Registrar, _: &RegistrationContext) {
