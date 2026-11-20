@@ -15,7 +15,7 @@ change and try in a fresh world.
 | Example | What it demonstrates | In the game |
 | --- | --- | --- |
 | [Machine](src/machine.rs) | Pull an item from the west, process it, and send the result east through a pipe. | <img src="docs/images/tour-screen.png" width="220" alt="Machine screen processing cobblestone, with overlay and reloadable label"> |
-| [Services](src/tour/services.rs) | An operator announcement command with typed sources and source-routed feedback. | Chat messages |
+| [Services](src/tour/services.rs) | An operator announcement registered with `Command::executes`, with typed sources and source-routed feedback. | Chat messages |
 | [Fluid tank](src/tour/fluids.rs) | A saved 4,000 mB tank; fill and drain it using a held bucket and transactions. | <img src="docs/images/tour-fluid.png" width="280" alt="Successful 1000 mB tank fill with the emptied bucket in hand"> |
 | [Energy](src/tour/energy.rs) | Recover 25 energy per recipe into a saved buffer exposed on every face. | Saved block-entity data |
 | [Client](src/tour/client.rs) | A remappable inspection key, camera changes, local sound and a screen overlay. | <img src="docs/images/tour-keybinding.png" width="280" alt="Inspect machine view keybinding set to I"> |

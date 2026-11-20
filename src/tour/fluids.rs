@@ -11,45 +11,37 @@ pub fn tanks() -> ModFluidTanks {
     tanks
 }
 
-pub fn register(event: &mut RegisterCommandsEvent<'_>) {
-    for verb in ["fill", "drain"] {
-        event.commands.push(Command::op(
-            &format!("machine_sample {verb} <tank:block_pos>"),
-            2,
-        ));
+pub fn register(event: &mut RegisterCommandsEvent<'_>, machine: Option<BlockKey>) {
+    for (verb, fill) in [("fill", true), ("drain", false)] {
+        event.commands.push(
+            Command::op(&format!("machine_sample {verb} <tank:block_pos>"), 2).executes(
+                move |host, source, command| transfer(host, source, command, machine, fill),
+            ),
+        );
     }
 }
 
-fn direction(command: &CommandInvocation) -> Option<bool> {
-    match command.literals.as_slice() {
-        [root, verb] if root == "machine_sample" && verb == "fill" => Some(true),
-        [root, verb] if root == "machine_sample" && verb == "drain" => Some(false),
-        _ => None,
-    }
-}
-
-pub fn run(
+fn transfer(
     host: &mut dyn ServerHost,
-    event: &mut RunModCommandEvent<'_>,
+    source: &CommandSource,
+    command: &CommandInvocation,
     machine: Option<BlockKey>,
-) -> Flow {
-    let Some(fill) = direction(event.command) else {
-        return Flow::Continue;
-    };
-    let CommandSource::Player { player, .. } = event.source else {
+    fill: bool,
+) -> Option<i32> {
+    let CommandSource::Player { player, .. } = source else {
         let _ = host
             .commands()
             .feedback(Text::literal("Hold a bucket and run this as a player."));
-        return Flow::Cancel;
+        return Some(1);
     };
-    let Some(CommandArgumentValue::BlockPos(pos)) = event.command.argument("tank") else {
-        return Flow::Continue;
+    let CommandArgumentValue::BlockPos(pos) = command.argument("tank")? else {
+        return None;
     };
     let Some(level) = player.entity().level(host) else {
         let _ = host
             .commands()
             .feedback(Text::literal("The player is no longer in a level."));
-        return Flow::Cancel;
+        return Some(1);
     };
     if !level
         .block(host, *pos)
@@ -58,7 +50,7 @@ pub fn run(
         let _ = host
             .commands()
             .feedback(Text::literal("Target a loaded sample machine."));
-        return Flow::Cancel;
+        return Some(1);
     }
     let tank = level.capability(host, &FLUIDS, *pos, None);
     let held = ItemPlace::PlayerHand {
@@ -70,7 +62,7 @@ pub fn run(
         let _ = host.commands().feedback(Text::literal(
             "No fluid handler in the machine or held item.",
         ));
-        return Flow::Cancel;
+        return Some(1);
     };
     let (from, to) = if fill {
         (&bucket, &tank)
@@ -84,7 +76,7 @@ pub fn run(
         Err(_) => "Transfer refused; no fluid moved.".into(),
     };
     let _ = host.commands().feedback(Text::literal(feedback));
-    Flow::Cancel
+    Some(1)
 }
 
 #[cfg(test)]
@@ -98,20 +90,5 @@ mod tests {
         assert!(tank.faces.iter().all(|face| face == &[0]));
         assert_eq!(tank.inputs, [0]);
         assert_eq!(tank.outputs, [0]);
-    }
-
-    #[test]
-    fn routes_only_our_transfer_commands() {
-        let command = |verb: &str| {
-            CommandInvocation::new(
-                vec!["machine_sample".into(), verb.into()],
-                vec![],
-                DimensionKey::OVERWORLD,
-                [0.0; 3],
-            )
-        };
-        assert_eq!(direction(&command("fill")), Some(true));
-        assert_eq!(direction(&command("drain")), Some(false));
-        assert_eq!(direction(&command("announce")), None);
     }
 }
