@@ -1,14 +1,12 @@
 //! Crouch with an empty hand and inspect an entity to record a saved visit.
 use mod_api::*;
 
-const VISITS: AttachmentType<u32> = AttachmentType {
-    namespace: "machine_sample",
-    name: "inspection_visits",
-    default: || 0,
-    codec: Some(AttachmentCodec { encode, decode }),
-    copy_on_death: false,
-    sync: false,
-};
+pub fn register(registrar: &mut dyn Registrar) -> Result<AttachmentKey<u32>, String> {
+    registrar.register_attachment_type(
+        AttachmentDescriptor::new("machine_sample:inspection_visits", || 0)
+            .serialize(AttachmentCodec { encode, decode }),
+    )
+}
 
 fn encode(visits: &u32) -> Result<Compound, AttachmentError> {
     let mut saved = Compound::default();
@@ -26,6 +24,7 @@ fn decode(saved: &Compound) -> Result<u32, AttachmentError> {
 pub fn inspect(
     host: &mut dyn ServerHost,
     event: &EntityInteractEvent<'_>,
+    key: &AttachmentKey<u32>,
 ) -> Option<InteractionResult> {
     let player = host.players().acting_player()?;
     if player.is_secondary_use_active(host) != Some(true) {
@@ -42,9 +41,9 @@ pub fn inspect(
     // The event's target belongs to the host's current level. No entity, world
     // borrow or holder identity is retained beyond this callback.
     let holder = Holder::Entity(id);
-    let answer = VISITS.get_existing(host, holder).and_then(|visits| {
+    let answer = key.get_existing(host, holder).and_then(|visits| {
         let visits = visits.unwrap_or_default().saturating_add(1);
-        VISITS.set(host, holder, visits)?;
+        key.set(host, holder, visits)?;
         Ok(visits)
     });
     match answer {
