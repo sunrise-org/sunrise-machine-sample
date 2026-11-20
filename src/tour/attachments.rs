@@ -34,9 +34,8 @@ pub fn inspect(
     let main = ItemPlace::PlayerHand {
         player: player.uuid(),
         hand: Hand::Main,
-    }
-    .stack(host);
-    if !inspection_hands_empty(main.as_ref(), event.stack) {
+    };
+    if !inspection_hands_empty(main.amount(host) != 0, event.stack) {
         return None;
     }
     let id = u32::try_from(event.entity).ok()?;
@@ -69,8 +68,8 @@ pub fn inspect(
     }
 }
 
-fn inspection_hands_empty(main: Option<&ItemStack>, used: Option<&ItemStack>) -> bool {
-    main.is_none() && used.is_none()
+fn inspection_hands_empty(main_occupied: bool, used: Option<&ItemStack>) -> bool {
+    !main_occupied && used.is_none()
 }
 
 #[cfg(test)]
@@ -84,10 +83,10 @@ mod tests {
         let id = Identifier::parse("minecraft:stick").unwrap();
         host.registries.resolve_items([id.clone()]).unwrap();
         let stick = ItemStack::of(host.item_key(&id).unwrap());
-        assert!(inspection_hands_empty(None, None));
-        assert!(!inspection_hands_empty(Some(&stick), None));
-        assert!(!inspection_hands_empty(None, Some(&stick)));
-        assert!(!inspection_hands_empty(Some(&stick), Some(&stick)));
+        assert!(inspection_hands_empty(false, None));
+        assert!(!inspection_hands_empty(true, None));
+        assert!(!inspection_hands_empty(false, Some(&stick)));
+        assert!(!inspection_hands_empty(true, Some(&stick)));
     }
 
     #[test]
