@@ -1,4 +1,5 @@
 //! A saved machine tank, filled or drained with the player's held bucket.
+use mod_api::resource_util::move_resources;
 use mod_api::*;
 
 pub fn tanks() -> ModFluidTanks {
@@ -76,7 +77,8 @@ pub fn run(
     } else {
         (&tank, &bucket)
     };
-    let answer = host.transaction(|host, tx| move_resources(host, from, to, |_| true, 1_000, tx));
+    let answer =
+        host.transaction(|host, tx| move_resources(host, from, to, |_| true, 1_000, Some(tx)));
     let feedback = match answer {
         Ok(amount) => format!("Transferred {amount} mB."),
         Err(_) => "Transfer refused; no fluid moved.".into(),

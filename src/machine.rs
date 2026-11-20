@@ -33,7 +33,7 @@ impl BlockEntityPart for Machine {
             )?;
             host.transaction(|host, tx| {
                 let resource = source.resource(host, 0).ok_or(())?;
-                if source.extract(host, tx, 0, &resource, 1) == 1 {
+                if source.extract_at(host, tx, 0, &resource, 1) == 1 {
                     resource.to_stack(1).ok_or(())
                 } else {
                     Err(())
@@ -102,7 +102,7 @@ impl BlockEntityPart for Machine {
                 })
                 .is_some_and(|target| {
                     host.transaction(|host, tx| {
-                        if target.insert_any(host, tx, &resource, 1) == 1 {
+                        if target.insert(host, tx, &resource, 1) == Ok(1) {
                             Ok(())
                         } else {
                             Err(())
