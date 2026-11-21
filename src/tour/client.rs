@@ -42,11 +42,8 @@ fn inspection_view(current: CameraType) -> CameraType {
     }
 }
 
-pub fn overlay(event: &mut ScreenDrawEvent<'_>) {
-    let [x, y] = event.origin;
-    event
-        .draw
-        .text("Processing cycle", [x + 8.0, y + 18.0], 0xffaaaaaa, false);
+pub fn overlay(draw: &mut dyn DrawContext, [x, y]: [f32; 2]) {
+    draw.text("Processing cycle", [x + 8.0, y + 18.0], 0xffaaaaaa, false);
 }
 
 #[cfg(test)]

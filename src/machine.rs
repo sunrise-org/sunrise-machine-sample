@@ -152,12 +152,11 @@ impl BlockEntityPart for Machine {
     }
 }
 
-/// The machine's screen. Its menu is vanilla's hopper menu, which other mods' blocks may open
-/// too, so it answers only for the machine.
-pub struct MachineScreen;
+/// The server-side Deposit action for the machine's hopper menu.
+pub struct MachineMenu;
 
 #[mod_api::sunrise_part]
-impl MenuPart for MachineScreen {
+impl MenuPart for MachineMenu {
     /// The machine takes one button, Deposit; the hopper menu it shares answers for no other block.
     fn menu_button_valid(&self, _: &dyn Host, event: &mut MenuButtonValidEvent<'_>) -> Flow {
         if event.block == Some(crate::MACHINE) && event.id == DEPOSIT {
@@ -201,69 +200,62 @@ impl MenuPart for MachineScreen {
             *event.carried = split.remainder;
         }
     }
+}
 
-    fn screen(&self, _: &dyn Host, event: &mut ScreenEvent<'_>) -> Option<Screen> {
-        if event.block != Some(crate::MACHINE) {
-            return None;
-        }
-        Some(Screen {
-            width: 176.0,
-            height: 166.0,
-            slots: vec![
-                Some(ScreenSlot {
-                    position: [44.0, 35.0],
-                    no_item_icon: None,
-                }),
-                Some(ScreenSlot {
-                    position: [116.0, 35.0],
-                    no_item_icon: None,
-                }),
-            ],
-            inventory_x: 8.0,
-            inventory_y: 84.0,
-            own_labels: false,
-            own_background: false,
-            ..Screen::default()
-        })
+/// Build the client presentation for this opener, not for every hopper menu.
+pub fn screen(_: &dyn ClientHost, open: MenuScreenOpen<'_>) -> Option<MenuScreen> {
+    if open.block != Some(crate::MACHINE) {
+        return None;
     }
-
-    fn screen_draw(&self, _: &dyn ClientHost, event: &mut ScreenDrawEvent<'_>) {
-        if event.block != Some(crate::MACHINE) {
-            return;
-        }
-        crate::tour::reload::draw(event);
-        crate::tour::client::overlay(event);
-        let [x, y] = event.origin;
-        event
-            .draw
-            .fill([x + 66.0, y + 55.0, 44.0, 16.0], 0xff555555);
-        event
-            .draw
-            .text("Deposit", [x + 68.0, y + 59.0], 0xffffffff, false);
-        let duration = event.data.get(1).copied().unwrap_or(DURATION).max(1);
-        let progress = event
-            .data
-            .first()
-            .copied()
-            .unwrap_or_default()
-            .clamp(0, duration);
-        event.draw.fill([x + 72.0, y + 40.0, 32.0, 6.0], 0xff555555);
-        event.draw.fill(
-            [
-                x + 72.0,
-                y + 40.0,
-                32.0 * progress as f32 / duration as f32,
-                6.0,
-            ],
-            0xff55bb55,
-        );
-    }
-
-    fn screen_click(&self, _: &dyn ClientHost, event: &mut ScreenClickEvent<'_>) -> Option<i32> {
-        (event.block == Some(crate::MACHINE)
-            && !event.right
-            && (66.0..110.0).contains(&event.at[0])
-            && (55.0..71.0).contains(&event.at[1]))
-        .then_some(DEPOSIT)
-    }
+    // The final three backing indices are permanently excluded for this opener.
+    let layout = MenuScreenLayout {
+        width: 176.0,
+        height: 166.0,
+        slots: vec![
+            Some(ScreenSlot {
+                position: [44.0, 35.0],
+                no_item_icon: None,
+            }),
+            Some(ScreenSlot {
+                position: [116.0, 35.0],
+                no_item_icon: None,
+            }),
+        ],
+        inventory_x: 8.0,
+        inventory_y: 84.0,
+        ..Default::default()
+    };
+    Some(
+        MenuScreen::new(layout)
+            .with_draw(|_, frame, draw| {
+                crate::tour::reload::draw(draw, frame.origin);
+                crate::tour::client::overlay(draw, frame.origin);
+                let [x, y] = frame.origin;
+                draw.fill([x + 66.0, y + 55.0, 44.0, 16.0], 0xff555555);
+                draw.text("Deposit", [x + 68.0, y + 59.0], 0xffffffff, false);
+                let duration = frame.data.get(1).copied().unwrap_or(DURATION).max(1);
+                let progress = frame
+                    .data
+                    .first()
+                    .copied()
+                    .unwrap_or_default()
+                    .clamp(0, duration);
+                draw.fill([x + 72.0, y + 40.0, 32.0, 6.0], 0xff555555);
+                draw.fill(
+                    [
+                        x + 72.0,
+                        y + 40.0,
+                        32.0 * progress as f32 / duration as f32,
+                        6.0,
+                    ],
+                    0xff55bb55,
+                );
+            })
+            .with_click(|_, frame, right| {
+                (!right
+                    && (66.0..110.0).contains(&frame.at[0])
+                    && (55.0..71.0).contains(&frame.at[1]))
+                .then_some(DEPOSIT)
+            }),
+    )
 }

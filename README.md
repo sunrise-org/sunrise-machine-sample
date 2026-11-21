@@ -24,12 +24,15 @@ change and try in a fresh world.
 | [Attachments](src/tour/attachments.rs) | Inspect an entity with an empty main hand to record a persistent visit count. | <img src="docs/images/tour-attachment.png" width="280" alt="Cow inspection counter displayed in the player's action bar"> |
 | [Tick-rate hook](src/lib.rs) | Observe a server tick-rate update through the typed `server_tick_rate_changed` hook. | <img src="docs/images/tour-inject.png" width="350" alt="Server tick-rate update listener messages at 10 and 20 TPS"> |
 
-The default recipe turns cobblestone into stone in 40 ticks. The machine has two
-visible slots; its Deposit button accepts the carried stack. This is a fixed
-west-to-east transfer example, not a pipe network.
+The default recipe turns cobblestone into stone in 40 ticks. The machine's
+hopper menu keeps five backing indices but excludes slots 2–4 for this block.
+A client factory builds the two-slot screen for each opening; its Deposit
+button asks the server to move the carried stack into the input. This is a
+fixed west-to-east transfer example, not a pipe network.
 
 [Try each example](VALIDATION.md#feature-tour-triggers) for the commands, gestures
-and expected results. Hooks and Parts cover every example; no injections or source adapters are needed.
+and expected results. Hooks, Parts and the registered screen factory use the public
+API; no injections or source adapters are needed.
 This sample has not been built as wasm.
 
 ## Build and run

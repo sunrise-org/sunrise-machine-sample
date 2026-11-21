@@ -140,12 +140,9 @@ pub fn duration(host: &dyn Host, item: ItemKey) -> i32 {
         .duration(host, item)
 }
 
-pub fn draw(event: &mut ScreenDrawEvent<'_>) {
-    let [x, y] = event.origin;
+pub fn draw(draw: &mut dyn DrawContext, [x, y]: [f32; 2]) {
     let label = LABEL.read().unwrap_or_else(|e| e.into_inner());
-    event
-        .draw
-        .text(&label, [x + 8.0, y - 12.0], 0xffaaaaaa, false);
+    draw.text(&label, [x + 8.0, y - 12.0], 0xffaaaaaa, false);
 }
 
 #[cfg(test)]
