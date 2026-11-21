@@ -19,8 +19,9 @@ impl BlockEntityPart for Machine {
 
     fn block_entity_tick(&self, event: &mut BlockEntityTickEvent<'_>) {
         let tick = &mut event.subject;
-        let Some((pos, level, empty)) = tick.with_view(|machine| {
+        let Some((handle, pos, level, empty)) = tick.with_view(|machine| {
             (
+                machine.handle(),
                 machine.position(),
                 machine.level(),
                 machine.item_slot(0).is_none(),
@@ -29,32 +30,35 @@ impl BlockEntityPart for Machine {
             return;
         };
 
+        let mut changed = false;
         if empty && crate::tour::policy::automatic_input(tick.host(), self.automatic_input) {
-            let _: Result<(), ()> = tick.transaction(|tick, tx| {
-                let host = tick.host();
-                let source = level
-                    .capability(
-                        host,
-                        &ITEMS,
-                        [pos[0] - 1, pos[1], pos[2]],
-                        Some(Direction::East),
-                    )
-                    .ok_or(())?;
-                let resource = source.resource(host, 0).ok_or(())?;
-                if source.extract_at(host, tx, 0, &resource, 1) != 1 {
-                    return Err(());
-                }
-                let stack = resource.to_stack(1).ok_or(())?;
-                tick.with_view(|mut machine| {
-                    if machine.item_slot(0).is_some()
-                        || machine.set_item_slot(0, Some(stack)) != Ok(true)
-                    {
+            changed |= tick
+                .transaction(|tick, tx| {
+                    let host = tick.host();
+                    let source = level
+                        .capability(
+                            host,
+                            &ITEMS,
+                            [pos[0] - 1, pos[1], pos[2]],
+                            Some(Direction::East),
+                        )
+                        .ok_or(())?;
+                    let resource = source.resource(host, 0).ok_or(())?;
+                    if source.extract_at(host, tx, 0, &resource, 1) != 1 {
                         return Err(());
                     }
-                    Ok(())
+                    let stack = resource.to_stack(1).ok_or(())?;
+                    tick.with_view(|mut machine| {
+                        if machine.item_slot(0).is_some()
+                            || machine.set_item_slot(0, Some(stack)) != Ok(true)
+                        {
+                            return Err(());
+                        }
+                        Ok(())
+                    })
+                    .ok_or(())?
                 })
-                .ok_or(())?
-            });
+                .is_ok();
         }
 
         let Some((input, output, progress)) = tick.with_view(|machine| {
@@ -92,63 +96,71 @@ impl BlockEntityPart for Machine {
         });
         let (progress, done) = advance(progress, result.is_some(), duration);
         if let Some(output) = result.filter(|_| done) {
-            let _: Result<(), ()> = tick.transaction(|tick, _| {
-                tick.with_view(|mut machine| {
-                    machine
-                        .set_item_slot(0, input.and_then(|stack| stack.shrink(1)))
-                        .map_err(|_| ())?;
-                    machine.set_item_slot(1, Some(output)).map_err(|_| ())?;
-                    let energy = crate::tour::energy::charged(machine.nbt().get(&"energy".into()));
-                    machine.set_nbt("energy".into(), Some(energy));
-                    machine.set_nbt("progress".into(), Some(Tag::Int(progress)));
-                    machine
-                        .set_data_slots(&[progress, duration])
-                        .map_err(|_| ())?;
-                    Ok(())
+            changed |= tick
+                .transaction(|tick, _| -> Result<(), ()> {
+                    tick.with_view(|mut machine| -> Result<(), ()> {
+                        machine
+                            .set_item_slot(0, input.and_then(|stack| stack.shrink(1)))
+                            .map_err(|_| ())?;
+                        machine.set_item_slot(1, Some(output)).map_err(|_| ())?;
+                        let energy =
+                            crate::tour::energy::charged(machine.nbt().get(&"energy".into()));
+                        machine.set_nbt("energy".into(), Some(energy));
+                        machine.set_nbt("progress".into(), Some(Tag::Int(progress)));
+                        machine.set_data_slots(&[progress, duration]);
+                        Ok(())
+                    })
+                    .ok_or(())?
                 })
-                .ok_or(())?
-            });
+                .is_ok();
         } else {
-            tick.with_view(|mut machine| {
-                machine.set_nbt("progress".into(), Some(Tag::Int(progress)));
-                let _ = machine.set_data_slots(&[progress, duration]);
-            });
+            changed |= tick
+                .with_view(|mut machine| {
+                    let saved = machine.set_nbt("progress".into(), Some(Tag::Int(progress)));
+                    machine.set_data_slots(&[progress, duration]);
+                    saved
+                })
+                .unwrap_or_default();
         }
 
-        let Some(Some(output)) =
+        if let Some(Some(output)) =
             tick.with_view(|machine| machine.item_slot(1).and_then(|stack| stack.to_owned()))
-        else {
-            return;
-        };
-        let _: Result<(), ()> = tick.transaction(|tick, tx| {
-            let host = tick.host();
-            if level.block(host, [pos[0] + 1, pos[1], pos[2]]) != Some(self.pipe) {
-                return Err(());
-            }
-            let target = level
-                .capability(
-                    host,
-                    &ITEMS,
-                    [pos[0] + 2, pos[1], pos[2]],
-                    Some(Direction::West),
-                )
-                .ok_or(())?;
-            if target.insert(host, tx, &ItemResource::of(&output), 1) != Ok(1) {
-                return Err(());
-            }
-            tick.with_view(|mut machine| {
-                let current = machine
-                    .item_slot(1)
-                    .and_then(|stack| stack.to_owned())
-                    .ok_or(())?;
-                if current != output {
-                    return Err(());
-                }
-                machine.set_item_slot(1, output.shrink(1)).map_err(|_| ())?;
-                Ok(())
-            })
-            .ok_or(())?
-        });
+        {
+            changed |= tick
+                .transaction(|tick, tx| {
+                    let host = tick.host();
+                    if level.block(host, [pos[0] + 1, pos[1], pos[2]]) != Some(self.pipe) {
+                        return Err(());
+                    }
+                    let target = level
+                        .capability(
+                            host,
+                            &ITEMS,
+                            [pos[0] + 2, pos[1], pos[2]],
+                            Some(Direction::West),
+                        )
+                        .ok_or(())?;
+                    if target.insert(host, tx, &ItemResource::of(&output), 1) != Ok(1) {
+                        return Err(());
+                    }
+                    tick.with_view(|mut machine| {
+                        let current = machine
+                            .item_slot(1)
+                            .and_then(|stack| stack.to_owned())
+                            .ok_or(())?;
+                        if current != output {
+                            return Err(());
+                        }
+                        machine.set_item_slot(1, output.shrink(1)).map_err(|_| ())?;
+                        Ok(())
+                    })
+                    .ok_or(())?
+                })
+                .is_ok();
+        }
+        if changed {
+            let _ = handle.set_changed(tick.host());
+        }
     }
 }
 
