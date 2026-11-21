@@ -11,11 +11,11 @@ pub fn register(registrar: &mut dyn Registrar) {
     );
 }
 
-pub fn input(host: &dyn ClientHost, event: &InputKeyEvent<'_>) {
+pub fn input(host: &dyn ClientHost, event: &InputKeyEvent<'_>, mapping: ModKeyMappingRef) {
     if event.action != KeyAction::Press || !host.playing() {
         return;
     }
-    let Some((key, modifiers)) = host.mod_key("machine_sample", "inspect") else {
+    let Ok((key, modifiers)) = mapping.binding(host) else {
         return;
     };
     if event.key != key || event.modifiers & 7 != modifiers.bits & 7 {
