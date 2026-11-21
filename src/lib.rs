@@ -9,6 +9,7 @@ use mod_api::*;
 struct Sample {
     recipes: std::sync::Arc<processing::ProcessingRecipes>,
     machine: std::sync::OnceLock<BlockKey>,
+    inspect_mapping: std::sync::OnceLock<ModKeyMappingRef>,
     visits: std::sync::RwLock<Option<AttachmentKey<u32>>>,
 }
 
@@ -67,8 +68,16 @@ impl Hooks for Sample {
         tour::reload::client(event);
     }
 
+    fn client_setup(&self, host: &mut dyn ClientHost, _: &mut ClientSetupEvent) {
+        if let Ok(mapping) = host.mod_key_mapping("machine_sample", "inspect") {
+            let _ = self.inspect_mapping.set(mapping);
+        }
+    }
+
     fn input_key(&self, host: &mut dyn ClientHost, event: &mut InputKeyEvent<'_>) {
-        tour::client::input(host, event);
+        if let Some(mapping) = self.inspect_mapping.get().copied() {
+            tour::client::input(host, event, mapping);
+        }
     }
 
     fn register_commands(&self, _: &mut dyn ServerHost, event: &mut RegisterCommandsEvent<'_>) {
