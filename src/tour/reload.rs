@@ -64,7 +64,7 @@ impl ServerReloadListener for Times {
     fn prepare(
         &self,
         context: &ServerReloadContext,
-    ) -> Result<Box<dyn ReloadApply>, ReloadResourceError> {
+    ) -> Result<Box<dyn FnOnce() + Send + 'static>, ReloadResourceError> {
         let id = Identifier::parse("machine_sample:processing").unwrap();
         let bytes = context.read(&id).ok_or_else(|| {
             ReloadResourceError::new(
@@ -73,7 +73,7 @@ impl ServerReloadListener for Times {
             )
         })?;
         let table = parse_times(bytes).map_err(|error| ReloadResourceError::new(id, error))?;
-        Ok(<dyn ReloadApply>::new(move || {
+        Ok(Box::new(move || {
             *TIMES.write().unwrap_or_else(|e| e.into_inner()) = table;
         }))
     }
@@ -107,7 +107,7 @@ impl ClientReloadListener for Label {
     fn prepare(
         &self,
         context: &ClientReloadContext,
-    ) -> Result<Box<dyn ReloadApply>, ReloadResourceError> {
+    ) -> Result<Box<dyn FnOnce() + Send + 'static>, ReloadResourceError> {
         let id = Identifier::parse("machine_sample:screen").unwrap();
         let bytes = context.read(&id).ok_or_else(|| {
             ReloadResourceError::new(
@@ -116,7 +116,7 @@ impl ClientReloadListener for Label {
             )
         })?;
         let label = parse_label(bytes).map_err(|error| ReloadResourceError::new(id, error))?;
-        Ok(<dyn ReloadApply>::new(move || {
+        Ok(Box::new(move || {
             *LABEL.write().unwrap_or_else(|e| e.into_inner()) = label;
         }))
     }
