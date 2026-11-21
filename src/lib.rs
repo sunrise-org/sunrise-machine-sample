@@ -114,7 +114,13 @@ impl Hooks for Sample {
                 },
             )
             .expect("native block entity type");
-        registrar.menu_part(MACHINE_MENU, machine::MachineScreen);
+        registrar.menu_part(MACHINE_MENU, machine::MachineMenu);
+        registrar
+            .menu_slot_exclusions(MACHINE_MENU, Some(MACHINE), &[2, 3, 4])
+            .expect("machine hopper slot exclusions");
+        registrar
+            .register_menu_screen(MACHINE_MENU, std::sync::Arc::new(machine::screen))
+            .expect("machine hopper screen factory");
     }
 }
 
