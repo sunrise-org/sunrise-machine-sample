@@ -58,7 +58,7 @@ impl BlockEntityPart for Machine {
         }
 
         let Some((input, output, progress)) = tick.with_view(|machine| {
-            let progress = match machine.nbt().get(&"progress".into()) {
+            let progress = match machine.nbt().and_then(|nbt| nbt.get(&"progress".into())) {
                 Some(Tag::Int(n)) => *n,
                 _ => 0,
             };
@@ -98,7 +98,9 @@ impl BlockEntityPart for Machine {
                         .set_item_slot(0, input.and_then(|stack| stack.shrink(1)))
                         .map_err(|_| ())?;
                     machine.set_item_slot(1, Some(output)).map_err(|_| ())?;
-                    let energy = crate::tour::energy::charged(machine.nbt().get(&"energy".into()));
+                    let energy = crate::tour::energy::charged(
+                        machine.nbt().and_then(|nbt| nbt.get(&"energy".into())),
+                    );
                     machine.set_nbt("energy".into(), Some(energy));
                     machine.set_nbt("progress".into(), Some(Tag::Int(progress)));
                     machine
