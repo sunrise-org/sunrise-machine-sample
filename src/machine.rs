@@ -114,13 +114,13 @@ impl BlockEntityPart for Machine {
                 })
                 .is_ok();
         } else {
-            changed |= tick
-                .with_view(|mut machine| {
-                    let saved = machine.set_nbt("progress".into(), Some(Tag::Int(progress)));
-                    machine.set_data_slots(&[progress, duration]);
-                    saved
-                })
-                .unwrap_or_default();
+            // Progress alone marks nothing changed: vanilla's furnace calls `setChanged` only
+            // when it finishes an item, burns fuel or lets progress decay
+            // (`AbstractFurnaceBlockEntity.serverTick`), not for each cook-timer step.
+            tick.with_view(|mut machine| {
+                machine.set_nbt("progress".into(), Some(Tag::Int(progress)));
+                machine.set_data_slots(&[progress, duration]);
+            });
         }
 
         if let Some(Some(output)) =
