@@ -188,39 +188,52 @@ impl MenuPart for MachineMenu {
         if event.block != Some(crate::MACHINE) || event.context.id != DEPOSIT {
             return;
         }
-        let Some(stack) = event.carried.as_ref() else {
+        // Move from the live cursor and commit the two writes together.
+        let subject = &mut event.subject;
+        let host = subject.host();
+        let Some(menu) = host
+            .player(event.context.player)
+            .and_then(|player| player.container_menu(host))
+        else {
             return;
         };
-        let Some(limit) = event.subject.host().max_stack_size(stack.item()) else {
+        let cursor = ItemPlace::PlayerCursor { menu };
+        let Some(Some(stack)) = cursor.with_stack(host, |stack| stack.project()) else {
             return;
         };
-        let deposited = event
-            .subject
-            .with_view(|mut machine| {
-                let input = match machine.item_slot(0) {
-                    Some(view) => Some(view.to_owned()?),
-                    None => None,
-                };
-                let input_count = input.as_ref().map_or(0, ItemStack::count);
-                let count = deposit_count(
-                    stack.count(),
-                    input_count,
-                    limit,
-                    input
-                        .as_ref()
-                        .is_none_or(|item| item.is_stackable_with(stack)),
-                );
-                if count == 0 {
-                    return None;
-                }
-                let mut updated = input.unwrap_or_else(|| stack.clone());
-                updated.set_count(input_count + count).ok()?;
-                (machine.set_item_slot(0, Some(updated)) == Ok(true)).then_some(count)
-            })
-            .flatten();
-        if let Some(count) = deposited {
-            *event.carried = event.carried.take().and_then(|stack| stack.shrink(count));
-        }
+        let Some(limit) = host.max_stack_size(stack.item()) else {
+            return;
+        };
+        let _: Result<(), ()> = subject.transaction(|subject, tx| {
+            let count = subject
+                .with_view(|mut machine| {
+                    let input = match machine.item_slot(0) {
+                        Some(view) => Some(view.to_owned()?),
+                        None => None,
+                    };
+                    let input_count = input.as_ref().map_or(0, ItemStack::count);
+                    let count = deposit_count(
+                        stack.count(),
+                        input_count,
+                        limit,
+                        input
+                            .as_ref()
+                            .is_none_or(|item| item.is_stackable_with(&stack)),
+                    );
+                    if count == 0 {
+                        return None;
+                    }
+                    let mut updated = input.unwrap_or_else(|| stack.clone());
+                    updated.set_count(input_count + count).ok()?;
+                    (machine.set_item_slot(0, Some(updated)) == Ok(true)).then_some(count)
+                })
+                .flatten()
+                .ok_or(())?;
+            if cursor.extract(subject.host(), tx, &ItemResource::of(&stack), count) != count {
+                return Err(());
+            }
+            Ok(())
+        });
     }
 }
 
