@@ -10,6 +10,7 @@ struct Sample {
     recipes: std::sync::Arc<processing::ProcessingRecipes>,
     machine: std::sync::OnceLock<BlockKey>,
     inspect_mapping: std::sync::OnceLock<ModKeyMappingRef>,
+    visits: std::sync::RwLock<Option<AttachmentKey<u32>>>,
 }
 
 #[mod_api::sunrise_mod]
@@ -43,7 +44,10 @@ impl Hooks for Sample {
     ) -> Option<InteractionResult> {
         // The visit count is the server's: the client predicts nothing here.
         match host {
-            HostSide::Server(host) => tour::attachments::inspect(host, event),
+            HostSide::Server(host) => {
+                let visits = self.visits.read().ok()?;
+                tour::attachments::inspect(host, event, visits.as_ref()?)
+            }
             HostSide::Client(_) => None,
         }
     }
@@ -82,6 +86,9 @@ impl Hooks for Sample {
     }
 
     fn register(&self, registrar: &mut dyn Registrar, _: &RegistrationContext) {
+        if let Ok(visits) = tour::attachments::register(registrar) {
+            *self.visits.write().unwrap() = Some(visits);
+        }
         registrar.register_recipe_type(PROCESSING_RECIPE_TYPE);
         registrar.register_raw_recipe_serializer(PROCESSING_SERIALIZER, PROCESSING_RECIPE_TYPE);
         let machine_block = registrar.block_key(MACHINE);
