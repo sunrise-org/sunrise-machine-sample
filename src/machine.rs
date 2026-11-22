@@ -184,38 +184,42 @@ impl MenuPart for MachineMenu {
         }
     }
 
-    fn menu_button(&self, host: &mut dyn ServerHost, event: &mut MenuButtonEvent<'_>) {
+    fn menu_button(&self, event: &mut MenuButtonEvent<'_>) {
         if event.block != Some(crate::MACHINE) || event.context.id != DEPOSIT {
             return;
         }
-        let Some(entity) = event.entity.as_mut() else {
+        let Some(stack) = event.carried.as_ref() else {
             return;
         };
-        let (Some(input), Some(stack)) = (entity.items.first_mut(), event.carried.as_ref()) else {
+        let Some(limit) = event.subject.host().max_stack_size(stack.item()) else {
             return;
         };
-        let limit = host.max_stack_size(stack.item()).unwrap_or(0);
-        let compatible = input
-            .as_ref()
-            .is_none_or(|item| item.is_stackable_with(stack));
-        let count = deposit_count(
-            stack.count(),
-            input.as_ref().map_or(0, ItemStack::count),
-            limit,
-            compatible,
-        );
-        if count == 0 {
-            return;
-        }
-        if let Some(input) = input {
-            input
-                .set_count(input.count() + count)
-                .expect("deposit respects capacity");
+        let deposited = event
+            .subject
+            .with_view(|mut machine| {
+                let input = match machine.item_slot(0) {
+                    Some(view) => Some(view.to_owned()?),
+                    None => None,
+                };
+                let input_count = input.as_ref().map_or(0, ItemStack::count);
+                let count = deposit_count(
+                    stack.count(),
+                    input_count,
+                    limit,
+                    input
+                        .as_ref()
+                        .is_none_or(|item| item.is_stackable_with(stack)),
+                );
+                if count == 0 {
+                    return None;
+                }
+                let mut updated = input.unwrap_or_else(|| stack.clone());
+                updated.set_count(input_count + count).ok()?;
+                (machine.set_item_slot(0, Some(updated)) == Ok(true)).then_some(count)
+            })
+            .flatten();
+        if let Some(count) = deposited {
             *event.carried = event.carried.take().and_then(|stack| stack.shrink(count));
-        } else {
-            let split = event.carried.take().unwrap().split(count);
-            *input = split.taken;
-            *event.carried = split.remainder;
         }
     }
 }
