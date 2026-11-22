@@ -204,7 +204,7 @@ impl MenuPart for MachineMenu {
         let Some(limit) = host.max_stack_size(stack.item()) else {
             return;
         };
-        let _: Result<(), ()> = subject.transaction(|subject, tx| {
+        let _: Result<(), TransactionError<()>> = subject.transaction(|subject, tx| {
             let count = subject
                 .with_view(|mut machine| {
                     let input = match machine.item_slot(0) {
