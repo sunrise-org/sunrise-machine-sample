@@ -44,7 +44,7 @@ impl BlockEntityPart for Machine {
                         )
                         .ok_or(())?;
                     let resource = source.resource(host, 0).ok_or(())?;
-                    if source.extract_at(host, tx, 0, &resource, 1) != 1 {
+                    if source.extract_at(host, tx, 0, &resource, 1) != Ok(1) {
                         return Err(());
                     }
                     let stack = resource.to_stack(1).ok_or(())?;
@@ -204,7 +204,8 @@ impl MenuPart for MachineMenu {
         let Some(limit) = host.max_stack_size(stack.item()) else {
             return;
         };
-        let _: Result<(), ()> = subject.transaction(|subject, tx| {
+        // A refused commit leaves the cursor and machine inventory unchanged.
+        let _: Result<(), TransactionError<()>> = subject.transaction(|subject, tx| {
             let count = subject
                 .with_view(|mut machine| {
                     let input = match machine.item_slot(0) {
@@ -229,7 +230,10 @@ impl MenuPart for MachineMenu {
                 })
                 .flatten()
                 .ok_or(())?;
-            if cursor.extract(subject.host(), tx, &ItemResource::of(&stack), count) != count {
+            let took = cursor
+                .extract(subject.host(), tx, &ItemResource::of(&stack), count)
+                .map_err(|_| ())?;
+            if took != count {
                 return Err(());
             }
             Ok(())
