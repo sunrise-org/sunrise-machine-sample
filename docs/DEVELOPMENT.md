@@ -92,14 +92,15 @@ are ordinary in-game screenshots.
 
 ## Machine scope
 
-The machine opens the stock hopper menu. Registration excludes backing slots
-2, 3 and 4 for this opener only, so input 0 and output 1 keep their indices.
-The client factory in [`src/machine.rs`](../src/machine.rs) declines other
-openers and gives each machine window its own layout and callbacks. The draw
-callback reads live progress and duration from `frame.data` and draws the
+The machine opens `machine_sample:machine_menu`, a custom menu with five
+backing slots, player inventory, and two data slots. `MachineMenu` refuses to
+place or take items in backing slots 2, 3 and 4; input 0 and output 1 keep their
+indices. The client factory in [`src/machine.rs`](../src/machine.rs) starts the
+unused slots inactive and gives each window its own layout and callbacks. The
+draw callback reads live progress and duration from `frame.data` and draws the
 inspection overlay and reloadable label. The click callback returns the Deposit
-button ID; the server's separate `MachineMenu` verifies the opener and button
-before moving the carried stack into input 0. Compatible input processes into
+button ID; `MachineMenu` checks the button before moving the carried stack into
+input 0. Compatible input processes into
 output 1 in 40 ticks by default; the server reload table can override the
 duration by input item ID.
 

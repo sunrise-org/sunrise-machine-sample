@@ -25,8 +25,8 @@ change and try in a fresh world.
 | [Tick-rate hook](src/lib.rs) | Observe a server tick-rate update through the typed `server_tick_rate_changed` hook. | <img src="docs/images/tour-inject.png" width="350" alt="Server tick-rate update listener messages at 10 and 20 TPS"> |
 
 The default recipe turns cobblestone into stone in 40 ticks. The machine's
-hopper menu keeps five backing indices but excludes slots 2–4 for this block.
-A client factory builds the two-slot screen for each opening; its Deposit
+own menu keeps five backing indices. Its slot rules reject placing or taking
+items in slots 2–4. A client factory starts those slots inactive; its Deposit
 button asks the server to move the carried stack into the input. This is a
 fixed west-to-east transfer example, not a pipe network.
 

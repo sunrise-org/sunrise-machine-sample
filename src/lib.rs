@@ -50,7 +50,7 @@ impl Hooks for Sample {
 
     fn add_server_reload_listeners(
         &self,
-        _: &dyn Host,
+        _: &dyn ReloadContext,
         event: &mut AddServerReloadListenersEvent<'_>,
     ) {
         tour::reload::server(event);
@@ -58,13 +58,13 @@ impl Hooks for Sample {
 
     fn add_client_reload_listeners(
         &self,
-        _: &dyn ClientHost,
+        _: &dyn ClientReloadListenerContext,
         event: &mut AddClientReloadListenersEvent<'_>,
     ) {
         tour::reload::client(event);
     }
 
-    fn client_setup(&self, host: &mut dyn ClientHost, _: &mut ClientSetupEvent) {
+    fn client_setup(&self, host: &mut dyn ClientSetupContext, _: &mut ClientSetupEvent) {
         if let Ok(mapping) = host.mod_key_mapping("machine_sample", "inspect") {
             let _ = self.inspect_mapping.set(mapping);
         }
@@ -108,11 +108,8 @@ impl Hooks for Sample {
             .expect("native block entity type");
         registrar.menu_part(MACHINE_MENU, machine::MachineMenu);
         registrar
-            .menu_slot_exclusions(MACHINE_MENU, Some(MACHINE), &[2, 3, 4])
-            .expect("machine hopper slot exclusions");
-        registrar
             .register_menu_screen(MACHINE_MENU, std::sync::Arc::new(machine::screen))
-            .expect("machine hopper screen factory");
+            .expect("machine screen factory");
     }
 }
 
@@ -128,8 +125,8 @@ fn container() -> ModContainer {
 }
 
 pub const MACHINE: &str = "machine_sample:machine";
-/// The machine's menu type: vanilla's hopper menu, five slots.
-pub const MACHINE_MENU: &str = "minecraft:hopper";
+/// The machine's own menu type, with five backing slots.
+pub const MACHINE_MENU: &str = "machine_sample:machine_menu";
 /// The recipe type the machine queries with `recipes_of_type`.
 pub const PROCESSING_RECIPE_TYPE: &str = "machine_sample:processing";
 /// The `type` of the recipe files, a serializer id independent of the recipe type.

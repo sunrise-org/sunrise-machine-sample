@@ -1,7 +1,7 @@
 {
-  "horizon_revision": "dd672e6511b31b3170e9922ce1746b6a8d385299",
+  "horizon_revision": "a544f26ad1165a87e516457a1e1e845cd7d78846",
   "source_sha256": {
-    "crates/sunrise-client/src/game.rs": "cc20d4842ee6ebcabe3a26baf014ecf1adc0f0a6a25338ee8e66dcfff2cc64de",
+    "crates/sunrise-client/src/game.rs": "61d0cc2300417597cacbd230cad35fc70285a4ac6e74b631b2dc3671433bdaec",
     "crates/sunrise-client/src/game/native_hooks/server_tick_rate_changed.rs": "05833aff40786949865723edd33fcd4a322de1ea436a3d4cde58399680cbf8f9"
   },
   "sunrise_repository": "https://github.com/sunrise-org/sunrise",

@@ -164,12 +164,18 @@ impl BlockEntityPart for Machine {
     }
 }
 
-/// The server-side Deposit action for the machine's hopper menu.
+/// Slot rules and the Deposit action for the machine's menu.
 pub struct MachineMenu;
 
 #[mod_api::sunrise_part]
 impl MenuPart for MachineMenu {
-    /// The machine takes one button, Deposit; the hopper menu it shares answers for no other block.
+    fn menu_slot_rules(&self, _: &dyn Host, event: &mut MenuSlotRulesEvent<'_>) {
+        if event.container == MenuContainer::Main && matches!(event.slot, 2..=4) {
+            event.may_place = false;
+            event.may_pickup = false;
+        }
+    }
+
     fn menu_button_valid(&self, _: &dyn Host, event: &mut MenuButtonValidEvent<'_>) -> Flow {
         if event.block == Some(crate::MACHINE) && event.id == DEPOSIT {
             Flow::Cancel
@@ -214,12 +220,9 @@ impl MenuPart for MachineMenu {
     }
 }
 
-/// Build the client presentation for this opener, not for every hopper menu.
-pub fn screen(_: &dyn ClientHost, open: MenuScreenOpen<'_>) -> Option<MenuScreen> {
-    if open.block != Some(crate::MACHINE) {
-        return None;
-    }
-    // The final three backing indices are permanently excluded for this opener.
+/// Build the presentation for a newly opened machine menu.
+pub fn screen(_: &dyn ClientHost, _: MenuScreenOpen<'_>) -> Option<MenuScreen> {
+    // The final three backing slots start inactive; the MenuPart rejects their use.
     let layout = MenuScreenLayout {
         width: 176.0,
         height: 166.0,
