@@ -9,6 +9,7 @@ use mod_api::*;
 struct Sample {
     recipes: std::sync::Arc<processing::ProcessingRecipes>,
     machine: std::sync::OnceLock<BlockKey>,
+    inspect_mapping: std::sync::OnceLock<ModKeyMappingRef>,
 }
 
 #[mod_api::sunrise_mod]
@@ -49,7 +50,7 @@ impl Hooks for Sample {
 
     fn add_server_reload_listeners(
         &self,
-        _: &dyn Host,
+        _: &dyn ReloadContext,
         event: &mut AddServerReloadListenersEvent<'_>,
     ) {
         tour::reload::server(event);
@@ -57,30 +58,27 @@ impl Hooks for Sample {
 
     fn add_client_reload_listeners(
         &self,
-        _: &dyn ClientHost,
+        _: &dyn ClientReloadListenerContext,
         event: &mut AddClientReloadListenersEvent<'_>,
     ) {
         tour::reload::client(event);
     }
 
+    fn client_setup(&self, host: &mut dyn ClientSetupContext, _: &mut ClientSetupEvent) {
+        if let Ok(mapping) = host.mod_key_mapping("machine_sample", "inspect") {
+            let _ = self.inspect_mapping.set(mapping);
+        }
+    }
+
     fn input_key(&self, host: &mut dyn ClientHost, event: &mut InputKeyEvent<'_>) {
-        tour::client::input(host, event);
+        if let Some(mapping) = self.inspect_mapping.get().copied() {
+            tour::client::input(host, event, mapping);
+        }
     }
 
     fn register_commands(&self, _: &mut dyn ServerHost, event: &mut RegisterCommandsEvent<'_>) {
         tour::services::register(event);
-        tour::fluids::register(event);
-    }
-
-    fn run_mod_command(
-        &self,
-        host: &mut dyn ServerHost,
-        event: &mut RunModCommandEvent<'_>,
-    ) -> Flow {
-        if matches!(tour::services::run(host, event), Flow::Cancel) {
-            return Flow::Cancel;
-        }
-        tour::fluids::run(host, event, self.machine.get().copied())
+        tour::fluids::register(event, self.machine.get().copied());
     }
 
     fn register(&self, registrar: &mut dyn Registrar, _: &RegistrationContext) {
@@ -108,7 +106,10 @@ impl Hooks for Sample {
                 },
             )
             .expect("native block entity type");
-        registrar.menu_part(MACHINE_MENU, machine::MachineScreen);
+        registrar.menu_part(MACHINE_MENU, machine::MachineMenu);
+        registrar
+            .register_menu_screen(MACHINE_MENU, std::sync::Arc::new(machine::screen))
+            .expect("machine screen factory");
     }
 }
 
@@ -124,8 +125,8 @@ fn container() -> ModContainer {
 }
 
 pub const MACHINE: &str = "machine_sample:machine";
-/// The machine's menu type: vanilla's hopper menu, five slots.
-pub const MACHINE_MENU: &str = "minecraft:hopper";
+/// The machine's own menu type, with five backing slots.
+pub const MACHINE_MENU: &str = "machine_sample:machine_menu";
 /// The recipe type the machine queries with `recipes_of_type`.
 pub const PROCESSING_RECIPE_TYPE: &str = "machine_sample:processing";
 /// The `type` of the recipe files, a serializer id independent of the recipe type.
@@ -133,12 +134,6 @@ pub const PROCESSING_SERIALIZER: &str = "machine_sample:processing_json";
 pub const PIPE: &str = "machine_sample:pipe";
 pub const DURATION: i32 = 40;
 pub const DEPOSIT: i32 = 0;
-
-pub fn fill_empty<T>(slot: &mut Option<T>, extract: impl FnOnce() -> Option<T>) {
-    if slot.is_none() {
-        *slot = extract();
-    }
-}
 
 pub fn deposit_count(carried: u32, input: u32, limit: u32, compatible: bool) -> u32 {
     if compatible {
@@ -163,18 +158,6 @@ pub fn advance(progress: i32, can_process: bool, duration: i32) -> (i32, bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn fills_only_an_empty_slot() {
-        let mut slot = None;
-        fill_empty(&mut slot, || None::<u8>);
-        assert_eq!(slot, None);
-        fill_empty(&mut slot, || Some(7));
-        assert_eq!(slot, Some(7));
-        fill_empty(&mut slot, || {
-            panic!("must not extract into an occupied slot")
-        });
-        assert_eq!(slot, Some(7));
-    }
     #[test]
     fn deposit_respects_capacity_and_compatibility() {
         assert_eq!(deposit_count(0, 0, 64, true), 0);

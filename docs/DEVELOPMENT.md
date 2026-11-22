@@ -72,7 +72,7 @@ data/machine_sample/
 The mod's id and version come from `sunrise-mod.toml`, not Cargo's package name
 and version. `#[mod_api::sunrise_mod]` exports its Hooks entry. The launcher owns
 the generated game entry and tool manifest; this project has no raw injections
-or handwritten factories. The tick-rate example uses `server_tick_rate_changed`, the typed hook now provided
+or handwritten mod entry points. The tick-rate example uses `server_tick_rate_changed`, the typed hook now provided
 by the engine. There are no injection declarations or points dependencies. A
 future API injection must have a prebuilt slot; it must never rebuild the game
 or silently acquire an internals source adapter. Real mixins require internals
@@ -92,10 +92,17 @@ are ordinary in-game screenshots.
 
 ## Machine scope
 
-The machine's custom two-slot screen is backed by a five-slot hopper menu.
-Deposit moves the carried stack into input slot 0. Compatible input processes
-into output slot 1 in 40 ticks by default; the server reload table can override
-the duration by input item id.
+The machine opens `machine_sample:machine_menu`, a custom menu with five
+backing slots, player inventory, and two data slots. `MachineMenu` refuses to
+place or take items in backing slots 2, 3 and 4; input 0 and output 1 keep their
+indices. The client factory in [`src/machine.rs`](../src/machine.rs) starts the
+unused slots inactive and gives each window its own layout and callbacks. The
+draw callback reads live progress and duration from `frame.data` and draws the
+inspection overlay and reloadable label. The click callback returns the Deposit
+button ID; `MachineMenu` checks the button before moving the carried stack into
+input 0. Compatible input processes into
+output 1 in 40 ticks by default; the server reload table can override the
+duration by input item ID.
 
 Recipe files carry a serializer id as their `type`. `Hooks::register` declares
 the recipe type `machine_sample:processing` and the raw serializer

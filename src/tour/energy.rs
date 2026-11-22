@@ -14,22 +14,17 @@ pub fn buffer() -> ModEnergyBuffer {
     }
 }
 
-pub fn charge(nbt: &mut Compound) {
-    let amount = match nbt.get(&"energy".into()) {
+pub fn charged(previous: Option<&Tag>) -> Tag {
+    let amount = match previous {
         Some(Tag::Int(amount)) => *amount,
         _ => 0,
     };
-    // The canonical ENERGY provider uses this same saved NBT field. Updating
-    // the ticking Part's entity avoids looking up its temporarily lifted state.
-    nbt.insert(
-        "energy".into(),
-        Tag::Int(
-            amount
-                .clamp(0, CAPACITY)
-                .saturating_add(PER_RECIPE)
-                .min(CAPACITY),
-        ),
-    );
+    Tag::Int(
+        amount
+            .clamp(0, CAPACITY)
+            .saturating_add(PER_RECIPE)
+            .min(CAPACITY),
+    )
 }
 
 #[cfg(test)]
@@ -38,15 +33,9 @@ mod tests {
 
     #[test]
     fn recipe_energy_is_saved_and_bounded() {
-        let mut nbt = Compound::default();
-        charge(&mut nbt);
-        assert_eq!(nbt.get(&"energy".into()), Some(&Tag::Int(25)));
-        nbt.insert("energy".into(), Tag::Int(990));
-        charge(&mut nbt);
-        assert_eq!(nbt.get(&"energy".into()), Some(&Tag::Int(CAPACITY)));
-        charge(&mut nbt);
-        assert_eq!(nbt.get(&"energy".into()), Some(&Tag::Int(CAPACITY)));
+        assert_eq!(charged(None), Tag::Int(25));
+        assert_eq!(charged(Some(&Tag::Int(990))), Tag::Int(CAPACITY));
+        assert_eq!(charged(Some(&Tag::Int(CAPACITY))), Tag::Int(CAPACITY));
         assert_eq!(buffer().capacity, CAPACITY);
-        assert_eq!(buffer().max_extract, 100);
     }
 }

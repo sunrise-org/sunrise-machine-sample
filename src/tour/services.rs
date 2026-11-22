@@ -2,30 +2,24 @@
 use mod_api::*;
 
 pub fn register(event: &mut RegisterCommandsEvent<'_>) {
-    event
-        .commands
-        .push(Command::op("machine_sample announce <message:text>", 2));
-}
-
-pub fn run(host: &mut dyn ServerHost, event: &mut RunModCommandEvent<'_>) -> Flow {
-    let Some(message) = announcement(event.command, event.source) else {
-        return Flow::Continue;
-    };
-    let feedback = if host.messages().broadcast(Text::literal(message)).is_ok() {
-        "Announcement delivered."
-    } else {
-        "Announcement could not be delivered."
-    };
-    // The command service, rather than an acting-player lookup, routes feedback
-    // correctly for console, functions, command blocks and players alike.
-    let _ = host.commands().feedback(Text::literal(feedback));
-    Flow::Cancel
+    event.commands.push(
+        Command::op("machine_sample announce <message:text>", 2).executes(
+            |host, source, command| {
+                let message = announcement(command, source)?;
+                let feedback = if host.messages().broadcast(Text::literal(message)).is_ok() {
+                    "Announcement delivered."
+                } else {
+                    "Announcement could not be delivered."
+                };
+                // The command service routes feedback for console, functions, command blocks and players.
+                let _ = host.commands().feedback(Text::literal(feedback));
+                Some(1)
+            },
+        ),
+    );
 }
 
 fn announcement(command: &CommandInvocation, source: &CommandSource) -> Option<String> {
-    if command.literals != ["machine_sample", "announce"] {
-        return None;
-    }
     let CommandArgumentValue::String(message) = command.argument("message")? else {
         return None;
     };
@@ -44,13 +38,18 @@ fn announcement(command: &CommandInvocation, source: &CommandSource) -> Option<S
 mod tests {
     use super::*;
 
-    fn command(literals: &[&str], message: &str) -> CommandInvocation {
+    fn command(message: Option<&str>) -> CommandInvocation {
         CommandInvocation::new(
-            literals.iter().map(|s| (*s).to_owned()).collect(),
-            vec![CommandArgument::new(
-                "message".into(),
-                CommandArgumentValue::String(message.into()),
-            )],
+            vec!["machine_sample".into(), "announce".into()],
+            message
+                .map(|message| {
+                    CommandArgument::new(
+                        "message".into(),
+                        CommandArgumentValue::String(message.into()),
+                    )
+                })
+                .into_iter()
+                .collect(),
             DimensionKey::OVERWORLD,
             [0.0; 3],
         )
@@ -62,25 +61,16 @@ mod tests {
             permission: PermissionLevel::All,
         };
         assert_eq!(
-            announcement(
-                &command(&["machine_sample", "announce"], "Machine ready"),
-                &source
-            ),
+            announcement(&command(Some("Machine ready")), &source),
             Some("[Machine Sample / console] Machine ready".into())
         );
-        assert_eq!(
-            announcement(&command(&["another_mod", "announce"], "ignored"), &source),
-            None
-        );
+        assert_eq!(announcement(&command(None), &source), None);
         let function = CommandSource::Function {
             id: Identifier::parse("machine_sample:alarm").unwrap(),
             permission: PermissionLevel::All,
         };
         assert_eq!(
-            announcement(
-                &command(&["machine_sample", "announce"], "Ready"),
-                &function
-            ),
+            announcement(&command(Some("Ready")), &function),
             Some("[Machine Sample / function] Ready".into())
         );
     }

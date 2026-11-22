@@ -15,7 +15,7 @@ change and try in a fresh world.
 | Example | What it demonstrates | In the game |
 | --- | --- | --- |
 | [Machine](src/machine.rs) | Pull an item from the west, process it, and send the result east through a pipe. | <img src="docs/images/tour-screen.png" width="220" alt="Machine screen processing cobblestone, with overlay and reloadable label"> |
-| [Services](src/tour/services.rs) | An operator announcement command with typed sources and source-routed feedback. | Chat messages |
+| [Services](src/tour/services.rs) | An operator announcement registered with `Command::executes`, with typed sources and source-routed feedback. | Chat messages |
 | [Fluid tank](src/tour/fluids.rs) | A saved 4,000 mB tank; fill and drain it using a held bucket and transactions. | <img src="docs/images/tour-fluid.png" width="280" alt="Successful 1000 mB tank fill with the emptied bucket in hand"> |
 | [Energy](src/tour/energy.rs) | Recover 25 energy per recipe into a saved buffer exposed on every face. | Saved block-entity data |
 | [Client](src/tour/client.rs) | A remappable inspection key, camera changes, local sound and a screen overlay. | <img src="docs/images/tour-keybinding.png" width="280" alt="Inspect machine view keybinding set to I"> |
@@ -24,12 +24,15 @@ change and try in a fresh world.
 | [Attachments](src/tour/attachments.rs) | Inspect an entity with an empty main hand to record a persistent visit count. | <img src="docs/images/tour-attachment.png" width="280" alt="Cow inspection counter displayed in the player's action bar"> |
 | [Tick-rate hook](src/lib.rs) | Observe a server tick-rate update through the typed `server_tick_rate_changed` hook. | <img src="docs/images/tour-inject.png" width="350" alt="Server tick-rate update listener messages at 10 and 20 TPS"> |
 
-The default recipe turns cobblestone into stone in 40 ticks. The machine has two
-visible slots; its Deposit button accepts the carried stack. This is a fixed
-west-to-east transfer example, not a pipe network.
+The default recipe turns cobblestone into stone in 40 ticks. The machine's
+own menu keeps five backing indices. Its slot rules reject placing or taking
+items in slots 2–4. A client factory starts those slots inactive; its Deposit
+button asks the server to move the carried stack into the input. This is a
+fixed west-to-east transfer example, not a pipe network.
 
 [Try each example](VALIDATION.md#feature-tour-triggers) for the commands, gestures
-and expected results. Hooks and Parts cover every example; no injections or source adapters are needed.
+and expected results. Hooks, Parts and the registered screen factory use the public
+API; no injections or source adapters are needed.
 This sample has not been built as wasm.
 
 ## Build and run
