@@ -6,22 +6,22 @@ pub fn register(event: &mut RegisterCommandsEvent<'_>) {
         Command::op("machine_sample announce <message:text>", 2).executes(
             |host, source, command| {
                 let message = announcement(command, source)?;
-                let feedback = if host.messages().broadcast(Text::literal(message)).is_ok() {
-                    "Announcement delivered."
-                } else {
-                    "Announcement could not be delivered."
-                };
+                host.messages()
+                    .broadcast(Text::literal(message))
+                    .map_err(|_| Text::literal("Announcement could not be delivered."))?;
                 // The command service routes feedback for console, functions, command blocks and players.
-                let _ = host.commands().feedback(Text::literal(feedback));
-                Some(1)
+                let _ = host
+                    .commands()
+                    .feedback(Text::literal("Announcement delivered."));
+                Ok(1)
             },
         ),
     );
 }
 
-fn announcement(command: &CommandInvocation, source: &CommandSource) -> Option<String> {
-    let CommandArgumentValue::String(message) = command.argument("message")? else {
-        return None;
+fn announcement(command: &CommandInvocation, source: &CommandSource) -> Result<String, Box<Text>> {
+    let Some(CommandArgumentValue::String(message)) = command.argument("message") else {
+        return Err(Text::literal("Expected an announcement message.").into());
     };
     let origin = match source {
         CommandSource::Player { .. } => "player",
@@ -31,7 +31,7 @@ fn announcement(command: &CommandInvocation, source: &CommandSource) -> Option<S
         CommandSource::Function { .. } => "function",
         _ => "server",
     };
-    Some(format!("[Machine Sample / {origin}] {message}"))
+    Ok(format!("[Machine Sample / {origin}] {message}"))
 }
 
 #[cfg(test)]
@@ -61,17 +61,17 @@ mod tests {
             permission: PermissionLevel::All,
         };
         assert_eq!(
-            announcement(&command(Some("Machine ready")), &source),
-            Some("[Machine Sample / console] Machine ready".into())
+            announcement(&command(Some("Machine ready")), &source).unwrap(),
+            "[Machine Sample / console] Machine ready"
         );
-        assert_eq!(announcement(&command(None), &source), None);
+        assert!(announcement(&command(None), &source).is_err());
         let function = CommandSource::Function {
             id: Identifier::parse("machine_sample:alarm").unwrap(),
             permission: PermissionLevel::All,
         };
         assert_eq!(
-            announcement(&command(Some("Ready")), &function),
-            Some("[Machine Sample / function] Ready".into())
+            announcement(&command(Some("Ready")), &function).unwrap(),
+            "[Machine Sample / function] Ready"
         );
     }
 }

@@ -27,30 +27,21 @@ fn transfer(
     command: &CommandInvocation,
     machine: Option<BlockKey>,
     fill: bool,
-) -> Option<i32> {
+) -> Result<i32, Box<Text>> {
     let CommandSource::Player { player, .. } = source else {
-        let _ = host
-            .commands()
-            .feedback(Text::literal("Hold a bucket and run this as a player."));
-        return Some(1);
+        return Err(Text::literal("Hold a bucket and run this as a player.").into());
     };
-    let CommandArgumentValue::BlockPos(pos) = command.argument("tank")? else {
-        return None;
+    let Some(CommandArgumentValue::BlockPos(pos)) = command.argument("tank") else {
+        return Err(Text::literal("Expected the position of a sample machine.").into());
     };
     let Some(level) = player.entity().level(host) else {
-        let _ = host
-            .commands()
-            .feedback(Text::literal("The player is no longer in a level."));
-        return Some(1);
+        return Err(Text::literal("The player is no longer in a level.").into());
     };
     if !level
         .block(host, *pos)
         .is_some_and(|block| Some(block) == machine)
     {
-        let _ = host
-            .commands()
-            .feedback(Text::literal("Target a loaded sample machine."));
-        return Some(1);
+        return Err(Text::literal("Target a loaded sample machine.").into());
     }
     let tank = level.capability(host, &FLUIDS, *pos, None);
     let held = ItemPlace::PlayerHand {
@@ -59,24 +50,20 @@ fn transfer(
     };
     let bucket = held.capability(host, &ITEM_FLUIDS);
     let (Some(tank), Some(bucket)) = (tank, bucket) else {
-        let _ = host.commands().feedback(Text::literal(
-            "No fluid handler in the machine or held item.",
-        ));
-        return Some(1);
+        return Err(Text::literal("No fluid handler in the machine or held item.").into());
     };
     let (from, to) = if fill {
         (&bucket, &tank)
     } else {
         (&tank, &bucket)
     };
-    let answer =
-        host.transaction(|host, tx| move_resources(host, from, to, |_| true, 1_000, Some(tx)));
-    let feedback = match answer {
-        Ok(amount) => format!("Transferred {amount} mB."),
-        Err(_) => "Transfer refused; no fluid moved.".into(),
-    };
-    let _ = host.commands().feedback(Text::literal(feedback));
-    Some(1)
+    let amount = host
+        .transaction(|host, tx| move_resources(host, from, to, |_| true, 1_000, Some(tx)))
+        .map_err(|_| Text::literal("Transfer refused; no fluid moved."))?;
+    let _ = host
+        .commands()
+        .feedback(Text::literal(format!("Transferred {amount} mB.")));
+    Ok(1)
 }
 
 #[cfg(test)]
