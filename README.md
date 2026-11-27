@@ -79,7 +79,9 @@ lists what was done and seen.
 The project names the API by its SDK path, `.sunrise/sdk/api/crates/sunrise-mod-api`
 (ignored by git). `cargo sunrise-mod` fetches the signed SDK there for a published
 build; for an unpublished one, the launcher's build does not need the folder, but an editor or
-`cargo check` does: `python3 tools/sdk_api_source.py build .sunrise/sdk/api` in `SUNRISE` writes it. Once an
+`cargo check` does. Run this from the sample's root, giving the exporter's absolute path in the
+`SUNRISE` checkout, so the output lands in the sample:
+`python3 "$SUNRISE/tools/sdk_api_source.py" build .sunrise/sdk/api` (CI does the same). Once an
 `sdk-<build id>` release exists for the pin, `cargo sunrise-mod check` and `build` do this by themselves.
 
 [Development and packaging](docs/DEVELOPMENT.md) covers exact revisions, the flat
