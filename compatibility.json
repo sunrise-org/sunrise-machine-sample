@@ -1,8 +1,8 @@
 {
-  "horizon_revision": "aa0631e5c21d33555cdce67280fa15063742d707",
+  "horizon_revision": "ed6772e21188a0de95d38e5f0796c8e330552341",
   "source_sha256": {
-    "crates/sunrise-client/src/game.rs": "541c049ceb32cf5bebb7f0e42ea756893778d64ae1ef13f7ead39d37de51ecb0",
-    "crates/sunrise-client/src/game/native_hooks/server_tick_rate_changed.rs": "05833aff40786949865723edd33fcd4a322de1ea436a3d4cde58399680cbf8f9"
+    "crates/sunrise-client/src/game.rs": "2f94bcf12e2cfd204e2315ee32b530ca6d3364ae197aa8e316d4f1ea0fec5a77",
+    "crates/sunrise-client/src/game/native_hooks/server_tick_rate_changed.rs": "f6d29b9535302d067cd49c6935932c13e4378480f0b8f6a2dbb1f5875371a703"
   },
   "sunrise_repository": "https://github.com/sunrise-org/sunrise",
   "horizon_mixins_repository": "https://github.com/horizon-rust/horizon-mixins",

@@ -46,9 +46,9 @@ trees. It verifies source hashes and shared dependency versions, stages the
 canonical flat package, and leaves the original checkout unchanged. Repeated
 exports must preserve source bytes and mtimes. `check` then compiles the sample's crate in
 that export. Staging runs the pinned game's `cargo sunrise-mod build`, which fetches the pinned build's signed SDK:
-with no `sdk-<build id>` release for the pin, `stage`, `check`, `test`, `package.py` and `test_stage.py`
-stop there with "has no signed SDK" ([sunrise#4313](https://github.com/arismoko/horizon/issues/4313)), so they were not run
-at this pin. Listener existence/signatures and gameplay need the launcher's native build.
+without an `sdk-<build id>` release for the pin, `stage`, `check`, `test`, `package.py` and `test_stage.py`
+stop there with "has no signed SDK" ([sunrise#4313](https://github.com/arismoko/horizon/issues/4313)). They have not been run
+at the current pin, and whether it has a published SDK was not checked. Listener existence/signatures and gameplay need the launcher's native build.
 [VALIDATION](../VALIDATION.md) gives the proof scope and triggers.
 
 Seed the development `Cargo.lock` from the pinned game's committed lockfile

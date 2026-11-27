@@ -37,10 +37,10 @@ This sample has not been built as wasm.
 
 ## Build and run
 
-No `sdk-<build id>` release exists for the pinned Sunrise build (the first one published is a newer build; [VALIDATION](VALIDATION.md#published-sdk)
-lists what that route did), so the sample is
-built the way a mod author builds against an unpublished commit: with the
-launcher's developer SDK, from a checkout of [the pinned commit](sunrise-mod.toml).
+The sample is built the way a mod author builds against an unpublished commit: with the
+launcher's developer SDK, from a checkout of [the pinned commit](sunrise-mod.toml). Whether
+an `sdk-<build id>` release exists for the current pin was not checked
+([VALIDATION](VALIDATION.md#published-sdk) lists what that route did at an earlier pin).
 Native mods run with your rights: read the source before trusting it. The steps
 below follow Sunrise's
 [local developer builds](https://github.com/sunrise-org/sunrise/blob/main/docs/modding/src/how-to/native-mods/07-local-developer-builds.md)
@@ -65,17 +65,20 @@ Built (optimized, prebuilt)
 native-c417323-<key> built and selected for its instance.
 ```
 
+That output, and the timings and run below, are from the earlier pin
+`c417323915f5051092ff1c4649a0e96ef3022394`; they were not repeated at the current pin.
+
 A second run with nothing changed prints `Up to date (no build needed)`. Measured for this
 mod on one busy 8-CPU box (three runs each, Rust already downloaded, SDK already built):
 unchanged 0.31–0.35 s, after editing `src/lib.rs` 2.0–2.8 s. A clean build and the SDK's
 own build were not timed. The game was started and driven with the `sunrise-ctl` that
 `native-build` installs beside the executable, with `SUNRISE_LAUNCHER_DEVELOPER_OFFLINE=1`
-(the launcher's `play` was not run); [VALIDATION](VALIDATION.md#played-at-the-current-pin)
+(the launcher's `play` was not run); [VALIDATION](VALIDATION.md#played-at-an-earlier-pin)
 lists what was done and seen.
 
 The project names the API by its SDK path, `.sunrise/sdk/api/crates/sunrise-mod-api`
 (ignored by git). `cargo sunrise-mod` fetches the signed SDK there for a published
-build; for this unpublished one, the launcher's build does not need the folder, but an editor or
+build; for an unpublished one, the launcher's build does not need the folder, but an editor or
 `cargo check` does: `python3 tools/sdk_api_source.py build .sunrise/sdk/api` in `SUNRISE` writes it. Once an
 `sdk-<build id>` release exists for the pin, `cargo sunrise-mod check` and `build` do this by themselves.
 
