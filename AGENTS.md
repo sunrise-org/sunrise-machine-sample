@@ -1,7 +1,7 @@
 # Working on a native Sunrise mod
 
 Read README.md and compatibility.json before editing. Keep this repository
-separate from Sunrise and horizon-mixins. Only export committed pinned Sunrise
+separate from Sunrise. Only export committed pinned Sunrise
 sources into ignored target trees; never modify the original checkout or player
 resources. Do not commit binaries, exported sources or Minecraft assets.
 

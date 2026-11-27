@@ -4,8 +4,8 @@ Contributions are welcome. Please open a pull request and describe the change
 and its tests. Submit original code and assets only. Do not copy Mojang, Create,
 or other mods' source code or assets.
 
-This sample tracks the exact Sunrise and Mixins revisions in
-`compatibility.json`. Keep changes compatible with those pins, or explain and
+This sample tracks the exact Sunrise revision in `compatibility.json`, and
+`sunrise-mod.toml` must keep the `mixins` value that file records. Keep changes compatible with those pins, or explain and
 validate any pin update. Read the build and content setup in [README.md](README.md)
 before starting.
 

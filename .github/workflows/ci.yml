@@ -18,7 +18,7 @@ jobs:
       - name: Install native build dependencies
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev
       - name: Install pinned Rust
-        run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy --target wasm32-unknown-unknown
+        run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
       # The crate names the API by the SDK path; the API source
       # comes from a checkout of the pinned Sunrise commit, not a published sdk-<build id> release.
       - name: Write the pinned API source to .sunrise/sdk/api
