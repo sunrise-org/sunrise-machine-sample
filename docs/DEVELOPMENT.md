@@ -30,8 +30,10 @@ the pinned dependencies before using `--offline`.
 With a Git checkout containing the committed Sunrise pin:
 
 The API source must exist at that path first: `cargo sunrise-mod check` fetches the signed
-SDK of a published build, and for an unpublished one `python3 tools/sdk_api_source.py build
-.sunrise/sdk/api` in the Sunrise checkout writes it.
+SDK of a published build. For an unpublished one, run this from the sample's root, with the
+absolute path of the exporter in the Sunrise checkout (`$SUNRISE`), so the output lands in the
+sample (README and CI do the same):
+`python3 "$SUNRISE/tools/sdk_api_source.py" build .sunrise/sdk/api`.
 
 ```sh
 cargo +1.99.1 fmt --check
