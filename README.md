@@ -22,7 +22,7 @@ change and try in a fresh world.
 | [Reload](src/tour/reload.rs) | Read processing times from `data/` and a screen label from `assets/`, with pack overrides. | Label above the machine screen |
 | [Tags and gamerules](src/tour/policy.rs) | A reloadable input tag and a gamerule that pauses automatic intake. | Recipe membership and intake policy |
 | [Attachments](src/tour/attachments.rs) | Inspect an entity with an empty main hand to record a persistent visit count. | <img src="docs/images/tour-attachment.png" width="280" alt="Cow inspection counter displayed in the player's action bar"> |
-| [Tick-rate hook](src/lib.rs) | Observe a server tick-rate update through the typed `server_tick_rate_changed` hook. | <img src="docs/images/tour-inject.png" width="350" alt="Server tick-rate update listener messages at 10 and 20 TPS"> |
+| [Tick-rate hook](src/lib.rs) | Observe a server tick-rate update through the typed `server_tick_rate_changed` hook. | <img src="docs/images/tour-inject.png" width="350" alt="Historical tick-rate listener messages at 10 and 20 TPS"> [Earlier implementation](VALIDATION.md#typed-server-tick-rate-hook) |
 
 The default recipe turns cobblestone into stone in 40 ticks. The machine's
 own menu keeps five backing indices. Its slot rules reject placing or taking
@@ -32,7 +32,7 @@ fixed west-to-east transfer example, not a pipe network.
 
 [Try each example](VALIDATION.md#feature-tour-triggers) for the commands, gestures
 and expected results. Hooks, Parts and the registered screen factory use the public
-API; no injections or source adapters are needed.
+API.
 This sample has not been built as wasm.
 
 ## Build and run
@@ -92,8 +92,6 @@ package layout, source checks and common build prerequisites.
 - CI checks formatting, clippy and standalone unit tests. Sunrise's daily run builds the sample at its pinned commit against that day's API source.
 - The staging test checks the pinned source export, canonical package writer,
   deterministic output and that the original checkout stays unchanged.
-- The sample declares no `[[inject]]`; the former injection-placement helper no longer builds
-  against Sunrise and was removed.
 - The older pictures come from an actual linked Developer build on software Vulkan.
   Processing and pipe output, tank transfers, saved machine data, and an entity's
   inspection counter across save/reopen were exercised. They are not proof of
