@@ -6,9 +6,11 @@ sources into ignored target trees; never modify the original checkout or player
 resources. Do not commit binaries, exported sources or Minecraft assets.
 
 The runtime crate lives at the project root in src/. The sole mod manifest is
-sunrise-mod.toml; the launcher generates its own injection-tool manifest. Keep
-helper functions small and gameplay logic testable there. All AST changes go
-through horizon-mixins plan/apply; do not add string-based Rust source rewriting.
+sunrise-mod.toml; the launcher generates the game entry. Keep helper functions
+small and gameplay logic testable there. Add behavior through typed Hooks and
+Parts. Native function replacement (`[native.*]` sub-tables) is the unstable
+route, built for the exact game build with no silent fallback; this sample
+declares none, so do not add one without validating it against the pinned game.
 
 Validate with cargo fmt, clippy with warnings denied, cargo test and
 the standalone tests. For bundle/compatibility changes also run

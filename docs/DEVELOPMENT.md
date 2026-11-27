@@ -73,12 +73,9 @@ data/machine_sample/
 
 The mod's id and version come from `sunrise-mod.toml`, not Cargo's package name
 and version. `#[mod_api::sunrise_mod]` exports its Hooks entry. The launcher owns
-the generated game entry and tool manifest; this project has no raw injections
-or handwritten mod entry points. The tick-rate example uses `server_tick_rate_changed`, the typed hook now provided
-by the engine. There are no injection declarations or points dependencies. A
-future API injection must have a prebuilt slot; it must never rebuild the game
-or silently acquire an internals source adapter. Real mixins require internals
-access and are deliberately outside this prebuilt-only sample.
+the generated game entry and tool manifest; the sample has no handwritten mod
+entry point. The tick-rate example uses the engine's typed
+`server_tick_rate_changed` hook.
 
 Package using the pinned game's shared writer:
 

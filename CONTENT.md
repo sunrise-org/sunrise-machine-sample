@@ -22,6 +22,6 @@ cargo sunrise-mod build
 cargo sunrise-mod check target/sunrise-mod/machine_sample.hmod
 ```
 
-Install `target/sunrise-mod/machine_sample.hmod` through the launcher's Mods page and build its native trait mod. The machine registers a `BlockEntityPart` and uses `ITEMS` and screen hooks; it has no raw injections. Raw mixins are a rare escape hatch, not the recommended route.
+Install `target/sunrise-mod/machine_sample.hmod` through the launcher's Mods page and build its native mod. The machine registers a `BlockEntityPart` and a `MenuPart`, uses the `ITEMS` capability and a registered menu screen factory, and declares no function replacements. Function replacement is the unstable native route, built for the exact game build.
 This single package contains both content and native behavior. Use the same mod on both client and server. Removing registered blocks from an existing world can
 lose world data; test in a fresh world.

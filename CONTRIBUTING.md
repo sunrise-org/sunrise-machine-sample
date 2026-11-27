@@ -20,8 +20,8 @@ cargo test --workspace --locked --offline
 For bundle or compatibility changes, also run `python3 tools/test_stage.py` and
 `python3 tools/sunrise.py check` and `test` against the pinned Sunrise source.
 Pass `--sunrise` as described in the README. These checks do not link the game:
-use the launcher's native build and test the behavior in game as well. Trait
-hooks and parts are the normal route; raw injections are a rare escape hatch.
+use the launcher's native build and test the behavior in game as well. Follow
+the sample's typed Hooks and Parts when adding behavior.
 Do not commit exported sources, game assets, or build output.
 
 Contributions are licensed under the repository's [MIT license](LICENSE).
