@@ -40,14 +40,17 @@ pinned game's canonical package writer. `tools/test_package.py` checks the flat
 archive's contents, deterministic output and staging; development provenance,
 Cargo.lock and legacy manifests are not shipped.
 
-`tools/sunrise.py check` first checks API injection placement against the exact
-pin's published point catalog and shared constructor resolver, then freshness
-against its internals catalog and shared injection router. It compiles the trait
-crate, but **not** generated injection bindings or a linked game executable.
-The staging regression rejects a nonexistent point and a real point with a stale
-hash, then accepts that real point with its current hash. Acceptance does not
-prove the listener exists or has the emitted signature; that needs native linkage. A successful paired item 11 reports pin, lock,
-stage and check separately; linking is an additional, explicitly named proof.
+`tools/sunrise.py check` checks the manifest and provenance pins, exports the
+pinned game source, checks shared dependency versions and stages the flat
+package. That packaging step uses the pinned game's `cargo sunrise-mod build`
+and requires a signed SDK for the pin. Once staging succeeds, `check` runs
+`cargo check` on the sample crate against its SDK-path API dependency. This
+checks the typed API at compile time; it does not link a game executable or
+verify that a hook fires in game. Sample CI separately exports the pinned API
+source and runs formatting, clippy and standalone unit tests. Neither path
+exercises function replacement: this sample uses typed Hooks and Parts and
+declares no function replacements. Native linkage and gameplay are separate
+checks.
 
 Mods don't ship a toolchain file; Sunrise's pinned toolchain builds them. The
 helper and CI explicitly select the pinned launcher's Rust 1.99.1.
@@ -117,18 +120,16 @@ No performance improvement is claimed from source checks alone.
 
 ### Typed server tick-rate hook
 
-The sample now implements `server_tick_rate_changed` instead of an injection.
-The hook observes `/tick rate` and the end of a tick sprint before vanilla
-adjusts its autosave wait. It broadcasts the same message without a receiver,
-record, manifest target or function hash. The public hook exists at this pin;
-no internals or source adapter is necessary.
+The sample implements the public `server_tick_rate_changed` hook. It observes
+`/tick rate` and the end of a tick sprint before vanilla adjusts its autosave
+wait, and broadcasts a message through the typed ServerHost API.
 
 As an operator, run `/tick rate 10` and `/tick rate 20`. Expect
 `Machine Sample: tick-rate update observed.` with each update, including setting
 the current rate again. End a sprint and expect the hook there too. Ordinary
 ticks must not broadcast. These cases have not been run at this source pin.
-The screenshot is historical injection evidence at
-`e8e8109dc3f1c3624187ee425880aa6905d58693`, not proof of the new hook binding.
+The README's tick-rate screenshot shows the earlier injection-based listener at
+`e8e8109dc3f1c3624187ee425880aa6905d58693`, not the current typed hook.
 No wasm artifact or wasm run is claimed.
 
 ### Commands and messages
@@ -268,7 +269,8 @@ manually verified.
 
 ## In-game proof scope
 
-The README pictures were captured at Sunrise
+Except for the historical tick-rate screenshot noted above, the README pictures
+were captured at Sunrise
 `5d27928c5ce0ca8c041b0856ef56bfe5430bb6fc`, with sample code
 including the hand guard from #40 and screen-label fix from #42 (the latter's
 source head was `dc5d2616f17a7101cd445be3504dfa474060253e`). The exact-pin fork
