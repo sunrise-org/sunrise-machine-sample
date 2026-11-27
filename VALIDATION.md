@@ -73,7 +73,9 @@ west of the machine, a pipe to its east and an empty chest beyond:
 
 `sdk-0cad862ddcd8c80f184070eaab40c0d64b9a846d` was the first SDK release published
 while the earlier pin was ported. With the manifest and `compatibility.json` pin moved to
-that build and no other change, `cargo sunrise-mod check` fetched the signed SDK and passed (566 API items used), `cargo sunrise-mod build` packed `machine_sample.hmod` with
+that build and no other change, `cargo sunrise-mod check` fetched the signed SDK
+and passed (the host and wasm32 checks, then 566 API items used),
+`cargo sunrise-mod build` packed `machine_sample.hmod` with
 its `uses.json`, and `sunrise-launcher native-build` on a developer base of that commit,
 with no `SUNRISE_LAUNCHER_DEVELOPER_SDK`, downloaded the mod tools (96 MB) and built in 13 s. In game the
 same chest-machine-pipe-chest line turned 16 cobblestone into 16 stone. This sample's pin was then
