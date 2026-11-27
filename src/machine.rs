@@ -13,10 +13,6 @@ impl BlockPart for Machine {}
 
 #[mod_api::sunrise_part]
 impl BlockEntityPart for Machine {
-    fn block_entity_ticks(&self, _: &dyn Host, event: &mut BlockEntityTicksEvent<'_>) {
-        event.ticks = true;
-    }
-
     fn block_entity_tick(&self, event: &mut BlockEntityTickEvent<'_>) {
         let tick = &mut event.subject;
         let Some((handle, pos, level, empty)) = tick.with_view(|machine| {

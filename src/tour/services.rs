@@ -12,7 +12,7 @@ pub fn register(event: &mut RegisterCommandsEvent<'_>) {
                 // The command service routes feedback for console, functions, command blocks and players.
                 let _ = host
                     .commands()
-                    .feedback(Text::literal("Announcement delivered."));
+                    .feedback(Text::literal("Announcement delivered."), false);
                 Ok(1)
             },
         ),
@@ -52,6 +52,7 @@ mod tests {
                 .collect(),
             DimensionKey::OVERWORLD,
             [0.0; 3],
+            [0.0; 2],
         )
     }
 

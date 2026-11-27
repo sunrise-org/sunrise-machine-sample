@@ -62,7 +62,7 @@ fn transfer(
         .map_err(|_| Text::literal("Transfer refused; no fluid moved."))?;
     let _ = host
         .commands()
-        .feedback(Text::literal(format!("Transferred {amount} mB.")));
+        .feedback(Text::literal(format!("Transferred {amount} mB.")), false);
     Ok(1)
 }
 
