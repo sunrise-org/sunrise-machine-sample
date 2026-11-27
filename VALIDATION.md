@@ -73,8 +73,7 @@ west of the machine, a pipe to its east and an empty chest beyond:
 
 `sdk-0cad862ddcd8c80f184070eaab40c0d64b9a846d` was the first SDK release published
 while the earlier pin was ported. With the manifest and `compatibility.json` pin moved to
-that build and no other change, `cargo sunrise-mod check` fetched the signed SDK and passed (the host and
-wasm32 checks, then 566 API items used), `cargo sunrise-mod build` packed `machine_sample.hmod` with
+that build and no other change, `cargo sunrise-mod check` fetched the signed SDK and passed (566 API items used), `cargo sunrise-mod build` packed `machine_sample.hmod` with
 its `uses.json`, and `sunrise-launcher native-build` on a developer base of that commit,
 with no `SUNRISE_LAUNCHER_DEVELOPER_SDK`, downloaded the mod tools (96 MB) and built in 13 s. In game the
 same chest-machine-pipe-chest line turned 16 cobblestone into 16 stone. This sample's pin was then
@@ -115,7 +114,7 @@ These new-cache gameplay cases have not been run by this lane.
 
 For measurements, finish publication and warm the duration item-key cache before
 starting the timer. Report cold reload work separately from steady-state ticks;
-use the final sample source and exact game pin for both native and wasm runs.
+use the final sample source and exact game pin for each run.
 No performance improvement is claimed from source checks alone.
 
 ### Typed server tick-rate hook
@@ -130,7 +129,6 @@ the current rate again. End a sprint and expect the hook there too. Ordinary
 ticks must not broadcast. These cases have not been run at this source pin.
 The README's tick-rate screenshot shows the earlier injection-based listener at
 `e8e8109dc3f1c3624187ee425880aa6905d58693`, not the current typed hook.
-No wasm artifact or wasm run is claimed.
 
 ### Commands and messages
 

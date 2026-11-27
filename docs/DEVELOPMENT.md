@@ -6,7 +6,8 @@ and the parts of the sample that are deliberately small.
 ## Exact build inputs
 
 [sunrise-mod.toml](../sunrise-mod.toml) is the sole mod manifest. Its `[native]`
-section pins the game and exact Sunrise and horizon-mixins revisions. The
+section pins the game, the exact Sunrise revision and a `mixins` value that must
+equal `compatibility.json`. The
 API dependency in [Cargo.toml](../Cargo.toml) names the API only by the SDK path
 `.sunrise/sdk/api/crates/sunrise-mod-api`; the SDK there must be that same Sunrise
 commit's. [compatibility.json](../compatibility.json) records the source revision

@@ -33,7 +33,6 @@ fixed west-to-east transfer example, not a pipe network.
 [Try each example](VALIDATION.md#feature-tour-triggers) for the commands, gestures
 and expected results. Hooks, Parts and the registered screen factory use the public
 API.
-This sample has not been built as wasm.
 
 ## Build and run
 
