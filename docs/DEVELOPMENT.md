@@ -30,8 +30,10 @@ the pinned dependencies before using `--offline`.
 With a Git checkout containing the committed Sunrise pin:
 
 The API source must exist at that path first: `cargo sunrise-mod check` fetches the signed
-SDK of a published build, and for an unpublished one `python3 tools/sdk_api_source.py build
-.sunrise/sdk/api` in the Sunrise checkout writes it.
+SDK of a published build. For an unpublished one, run this from the sample's root, with the
+absolute path of the exporter in the Sunrise checkout (`$SUNRISE`), so the output lands in the
+sample (README and CI do the same):
+`python3 "$SUNRISE/tools/sdk_api_source.py" build .sunrise/sdk/api`.
 
 ```sh
 cargo +1.99.1 fmt --check
@@ -46,9 +48,9 @@ trees. It verifies source hashes and shared dependency versions, stages the
 canonical flat package, and leaves the original checkout unchanged. Repeated
 exports must preserve source bytes and mtimes. `check` then compiles the sample's crate in
 that export. Staging runs the pinned game's `cargo sunrise-mod build`, which fetches the pinned build's signed SDK:
-with no `sdk-<build id>` release for the pin, `stage`, `check`, `test`, `package.py` and `test_stage.py`
-stop there with "has no signed SDK" ([sunrise#4313](https://github.com/arismoko/horizon/issues/4313)), so they were not run
-at this pin. Listener existence/signatures and gameplay need the launcher's native build.
+without an `sdk-<build id>` release for the pin, `stage`, `check`, `test`, `package.py` and `test_stage.py`
+stop there with "has no signed SDK" ([sunrise#4313](https://github.com/arismoko/horizon/issues/4313)). They have not been run
+at the current pin, and whether it has a published SDK was not checked. Listener existence/signatures and gameplay need the launcher's native build.
 [VALIDATION](../VALIDATION.md) gives the proof scope and triggers.
 
 Seed the development `Cargo.lock` from the pinned game's committed lockfile

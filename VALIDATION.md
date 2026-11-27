@@ -1,12 +1,13 @@
 # Validation
 
-The flat project pins fork Sunrise
-`c417323915f5051092ff1c4649a0e96ef3022394` and its matching Mixins revision
-`e59da9094f0c2fdda6c627fe9eff22dec6a906f0`. This pin includes the host-area
-trait regroup, the `sunrise-mod-package` rename, and the attachment and registry
-key runtime split, plus API 2c's access declarations and generated host
-forwarders, plus API 2d's per-kind registrar and capability-provider traits.
-It also includes API 3a's owned nonempty `ItemStack` conversion boundary,
+The flat project pins sunrise-org/sunrise `main` commit
+`ed6772e21188a0de95d38e5f0796c8e330552341` and the Mixins revision
+`e59da9094f0c2fdda6c627fe9eff22dec6a906f0` (not re-checked against the new Sunrise pin).
+The API work described next was written against earlier pins and not re-verified at this one:
+the host-area trait regroup, the `sunrise-mod-package` rename, the attachment and registry
+key runtime split, API 2c's access declarations and generated host
+forwarders, API 2d's per-kind registrar and capability-provider traits,
+API 3a's owned nonempty `ItemStack` conversion boundary,
 API 3d's native-only raw renderer split and the shared-memory Wire boundary.
 Block comparisons retain registration-time keys. Recipe-field parsing passes
 JSON text and skips refused or absent definitions when publishing the table. The sample uses keyed item metadata,
@@ -51,9 +52,9 @@ stage and check separately; linking is an additional, explicitly named proof.
 Mods don't ship a toolchain file; Sunrise's pinned toolchain builds them. The
 helper and CI explicitly select the pinned launcher's Rust 1.99.1.
 
-## Played at the current pin
+## Played at an earlier pin
 
-Built with the launcher's developer SDK from a checkout of the pinned commit
+At fork Sunrise `c417323915f5051092ff1c4649a0e96ef3022394`, built with the launcher's developer SDK from a checkout of the pinned commit
 (see the README), started with `sunrise-ctl launch --offscreen` under a virtual
 display on software Vulkan, in a new creative world. A cobblestone chest to the
 west of the machine, a pipe to its east and an empty chest beyond:
@@ -68,16 +69,16 @@ west of the machine, a pipe to its east and an empty chest beyond:
 ### Published SDK
 
 `sdk-0cad862ddcd8c80f184070eaab40c0d64b9a846d` was the first SDK release published
-while this pin was ported. With the manifest and `compatibility.json` pin moved to
+while the earlier pin was ported. With the manifest and `compatibility.json` pin moved to
 that build and no other change, `cargo sunrise-mod check` fetched the signed SDK and passed (the host and
 wasm32 checks, then 566 API items used), `cargo sunrise-mod build` packed `machine_sample.hmod` with
 its `uses.json`, and `sunrise-launcher native-build` on a developer base of that commit,
 with no `SUNRISE_LAUNCHER_DEVELOPER_SDK`, downloaded the mod tools (96 MB) and built in 13 s. In game the
-same chest-machine-pipe-chest line turned 16 cobblestone into 16 stone. This sample's own pin stays at
-`c417323915`, which has no SDK release. `cargo sunrise-mod hooks` and `fits` were tried only as far as
+same chest-machine-pipe-chest line turned 16 cobblestone into 16 stone. This sample's pin was then
+`c417323915`, which had no SDK release; no SDK check was made for the current pin. `cargo sunrise-mod hooks` and `fits` were tried only as far as
 `hooks energy` (no match) and `fits` (no Nightly SDK to compare with).
 
-Not run at this pin: fluids, energy, the tour commands, keybindings, attachments,
+Not run at that pin: fluids, energy, the tour commands, keybindings, attachments,
 pack overrides and save/reopen. Their triggers below still describe the earlier
 recorded proof.
 

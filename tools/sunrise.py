@@ -21,7 +21,7 @@ COMPAT = json.loads((ROOT / "compatibility.json").read_text())
 PIN = MANIFEST["native"]["sunrise"]
 # Where `cargo sunrise-mod` fetches the pinned build's SDK; the crate names the API only there.
 SDK_API = ".sunrise/sdk/api/crates/sunrise-mod-api"
-# Matches launcher/src/rust_toolchain.rs at the pinned Sunrise revision.
+# Matches tools/ci/rust-version at the pinned Sunrise revision.
 TOOLCHAIN = "1.99.1"
 
 
